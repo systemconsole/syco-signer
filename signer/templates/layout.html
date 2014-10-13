@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <link rel="shortcut icon"
+        href="{{ url_for('static', filename='favicon.ico') }}">
+
+  <title>Syco Signer</title>
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" type="text/css"
+        href="{{ url_for('static', filename='bootstrap.min.css') }}">
+  <link href="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"
+        rel="stylesheet">
+
+  <!-- Custom styles for this template -->
+  <link rel="stylesheet" type="text/css"
+        href="{{ url_for('static', filename='style.css') }}">
+
+  <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+  <!--[if lt IE 9]>
+  <script src="{{ url_for('static', filename='html5shiv.js') }}"></script>
+  <script src="{{ url_for('static', filename='respond.min.js') }}"></script>
+  <![endif]-->
+
+  <script type="text/javascript" language="javascript"
+          src="https://www.datatables.net/release-datatables/media/js/jquery.js">
+  </script>
+  <script type="text/javascript" language="javascript"
+          src="https://www.datatables.net/release-datatables/media/js/jquery.dataTables.js">
+  </script>
+
+</head>
+
+<body>
+<!-- Fixed navbar -->
+<div class="navbar navbar-inverse navbar-top" role="navigation" id="navbar">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse"
+              data-target=".navbar-collapse">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/">Syco Signer</a>
+    </div>
+    <div class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li><a href="{{ url_for('signed') }}">Signed</a></li>
+        <li><a href="{{ url_for('trigger') }}">Trigger</a></li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="#">{{ REMOTE_USER }}</a></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+{% block body %}{% endblock %}
+
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="{{ url_for('static', filename='jquery.min.js') }}"></script>
+<script src="{{ url_for('static', filename='bootstrap.min.js') }}"></script>
+
+
+</body>
+</html>

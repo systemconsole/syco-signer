@@ -1,0 +1,80 @@
+{% extends "layout.html" %}
+{% block body %}
+
+<div class="navbar navbar-default" role="navigation" id="toolbar">
+  <div class="navbar-header">
+    <button type="button" class="navbar-toggle" data-toggle="collapse"
+            data-target="#toolbar-collapse">
+      <span class="sr-only">Toggle navigation</span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </button>
+    <a class="navbar-brand" href="#">Trigger - add</a>
+  </div>
+</div>
+
+<div class="container-fluid">
+  {% for message in get_flashed_messages() %}
+  <div class=flash>{{ message }}</div>
+  {% endfor %}
+</div>
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-sm-12 col-md-12 main">
+      <form class="form-horizontal" role="form" method="post" action="{{ url_for('trigger_add') }}">
+
+        <div class="form-group">
+          <label class="col-sm-4 control-label">User</label>
+          <div class="col-sm-7">
+            <p class="form-control-static">{{ REMOTE_USER }}</p>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="inputStatus" class="col-sm-4 control-label">Status</label>
+          <div class="col-sm-7">
+            <select type="status" class="form-control" id="inputStatus" name="inputStatus">
+              <option {{'selected' if entry['status']=='DELETE'}}           value="DELETE">Delete - will delete the result from the database</option>
+              <option {{'selected' if entry['status']=='CRITICAL_EXIST'}}   value="CRITICAL_EXIST">Critical exist - will generate Nagios Critical Alert if log entry exists</option>
+              <option {{'selected' if entry['status']=='WARNING_EXIST'}}    value="WARNING_EXIST">Warning exist - will generate Nagios Warning Alert if log entry exists</option>
+              <option {{'selected' if entry['status']=='CRITICAL_MISSING'}} value="CRITICAL_MISSING">Critical missing - will generate Nagios Critical Alert if log entry is missing</option>
+              <option {{'selected' if entry['status']=='WARNING_MISSING'}}  value="WARNING_MISSING">Warning missing - will generate Nagios Warning Alert if log entry is missing</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="inputFromHost" class="col-sm-4 control-label">From host trigger</label>
+          <div class="col-sm-7">
+            <input type="text" class="form-control" id="inputFromHost" name="inputFromHost" value="{{ entry['from_host_trigger']}}">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="inputSysLogTag" class="col-sm-4 control-label">Sys log tag trigger</label>
+          <div class="col-sm-7">
+            <input type="text" class="form-control" id="inputSysLogTag" name="inputSysLogTag" value="{{ entry['sys_log_tag_trigger']}}">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="inputMessage" class="col-sm-4 control-label">Message trigger</label>
+          <div class="col-sm-7">
+            <textarea class="form-control" rows="6" id="inputMessage" name="inputMessage">{{ entry['message_trigger']}}</textarea>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="col-sm-offset-2 col-sm-10">
+            <input type="hidden" name="inputBackUrl" value="{{entry['back_url'] if 'back_url' in entry else '/trigger'}}">
+            <button type="submit" class="btn btn-primary">Ok</button>
+            <a href="{{entry['back_url'] if 'back_url' in entry else url_for('trigger') }}" class="btn btn-default" role="button">Cancel</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

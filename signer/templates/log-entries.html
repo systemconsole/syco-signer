@@ -1,0 +1,121 @@
+{% from "pagination.html" import render_pagination %}
+{% extends "layout.html" %}
+{% block body %}
+
+<script type="text/javascript" charset="utf-8">
+  $(document).ready(function () {
+    fnShowHide();
+    fnShowHide();
+  });
+
+  function fnShowHide() {
+    if ($('#toggle').text() == 'Display few') {
+      $('td:nth-child(3),th:nth-child(3)').hide();
+      $('td:nth-child(4),th:nth-child(4)').hide();
+      $('td:nth-child(5),th:nth-child(5)').hide();
+      $('#toggle').text('Display all');
+    }
+    else {
+      $('td:nth-child(3),th:nth-child(3)').show();
+      $('td:nth-child(4),th:nth-child(4)').show();
+      $('td:nth-child(5),th:nth-child(5)').show();
+      $('#toggle').text('Display few');
+    }
+
+  }
+</script>
+
+<div class="navbar navbar-default" role="navigation" id="toolbar">
+  <div class="navbar-header">
+    <button type="button" class="navbar-toggle" data-toggle="collapse"
+            data-target="#toolbar-collapse">
+      <span class="sr-only">Toggle navigation</span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </button>
+    <a class="navbar-brand" href="#">Log entries</a>
+  </div>
+
+  <div class="navbar-collapse collapse" id="toolbar-collapse">
+    <ul class="nav navbar-nav">
+      <li><a href="javascript:void(0);" onclick="fnShowHide();" id="toggle">Display
+        all</a></li>
+    </ul>
+    {% if signed %}
+      <ul class="nav navbar-nav">
+        <li><a>Signed by: {{ signed['sign'] }} - {{ signed['message'] }}</a></li>
+       </ul>
+    {% else %}
+      <form class="navbar-form navbar-left" role="sign" method=post>
+        <div class="form-group">
+          <input type="text" class="form-control" name="sign_message"
+                 placeholder="Sign message" value="{{ signed['message'] }}">
+        </div>
+        <button type="submit" class="btn btn-default">Sign</button>
+      </form>
+    {% endif %}
+    <ul class="nav navbar-nav">
+      {{ render_pagination(pagination) }}
+    </ul>
+  </div>
+</div>
+
+<div class="container-fluid">
+  {% for category, message in get_flashed_messages(with_categories=true) %}
+    {% if message %}
+     <div class="{{ category }}">{{ message }}</div>
+    {% endif %}
+  {% endfor %}
+</div>
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-sm-12 col-md-12 main">
+      <div class="table-responsive">
+        <form class="form-inline" name="input" method="get">
+          <table class="table table-striped" id="example">
+            <thead>
+            <tr>
+              <th style="width: 70px; vertical-align: bottom;"></th>
+              <th style="width: 150px">ReceivedAt</th>
+              <th style="width: 150px">DeviceReportedTime</th>
+              <th style="width: 70px">Facility</th>
+              <th style="width: 70px">Priority</th>
+              <th style="width: 150px">FromHost<input type="text" name="from_host" class="form-control" value="{{ from_host }}"></th>
+              <th style="width: 150px">SysLogTag<input type="text" name="sys_log_tag" class="form-control" value="{{ sys_log_tag }}"></th>
+              <th>Message
+               <div class="form-group" style="display: block">
+                  <input type="text" name="message" class="form-control" value="{{ message }}" style="width: 50%;">
+                  <label class="checkbox-inline">
+                    <input type="checkbox" name="distinct" value="1" {% if distinct == '1' %}checked{% endif %}> Distinct
+                  </label>
+                 <button type="submit" class="btn btn-primary btn-xs" >Filter</button>
+                </div>
+              </th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for entry in entries %}
+            <tr>
+              <td><a href="{{ url_for('trigger_add_system_event', systemevents_id=entry['ID']) }}" class="btn btn-primary btn-xs" role="button">Trigger</a></td>
+              <td>{{ entry['ReceivedAt'] }}</td>
+              <td>{{ entry['DeviceReportedTime'] }}</td>
+              <td>{{ entry['Facility'] }}</td>
+              <td>{{ entry['Priority'] }}</td>
+              <td>{{ entry['FromHost'] }}</td>
+              <td>{{ entry['SysLogTag'] }}</td>
+              <td>{{ entry['Message'] }}</td>
+              <td>{{ entry['counter'] }}</td>
+            </tr>
+            {% endfor %}
+
+            </tbody>
+          </table>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

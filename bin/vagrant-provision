@@ -1,0 +1,61 @@
+#!/bin/bash
+#
+# Bootstraped from VagrantFile, and installs syco-signer on the box.
+#
+
+
+__author__="daniel.lindh@amivono.com"
+__copyright__="Copyright 2014, Amivono AB"
+
+
+#
+echo "Bootstrap vagrant box"
+echo
+
+
+# The vagrant virtual box uses DHCP, this ensures that the box resolves
+# dns with google dns.
+#
+grep 8.8.8.8  /etc/sysconfig/network-scripts/ifcfg-eth0 > /dev/null || \
+(
+    print_cmd  "Set 8.8.8.8 to dns in sysconfig"
+    echo "PEERDNS=yes" >> /etc/sysconfig/network-scripts/ifcfg-eth0
+    echo "DNS1=8.8.8.8" >> /etc/sysconfig/network-scripts/ifcfg-eth0
+    print_status "OK"
+)
+
+grep 8.8.8.8  /etc/resolv.conf > /dev/null || \
+(
+    print_cmd "Set 8.8.8.8 to dns in resolver"
+    echo "nameserver 8.8.8.8" >> /etc/resolv.conf
+    print_status "OK"
+)
+
+
+#
+# Install syco-signer
+#
+echo
+echo
+#/var/renter/bin/setup-syco-signer
+
+
+#
+# Prepare python interpreter for pycharm debugging.
+#
+#echo "* Create /opt/python_env/renter/bin/python2.7.renter used by pycharm "
+#cat > /opt/python_env/renter/bin/python2.7.renter << EOF
+##!/bin/bash
+## Renter should be run by the renter user. Required when debugging from pycharm.
+#sudo -u renter /opt/python_env/renter/bin/python2.7 "\$@"
+#EOF
+#chown renter:renter /opt/python_env/renter/bin/python2.7.renter
+#chmod 755 /opt/python_env/renter/bin/python2.7.renter
+
+
+#
+# Looks lite reboot don't mount the shared folder. Need to run "vagrant up".
+#
+#echo "Restarting the box after installations, to verify that it can handle"
+#echo "a reboot. Needs to be started again with *vagrant up*"
+#halt

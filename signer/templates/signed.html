@@ -1,0 +1,59 @@
+{% from "pagination.html" import render_pagination %}
+{% extends "layout.html" %}
+{% block body %}
+<div class="navbar navbar-default" role="navigation" id="toolbar">
+  <div class="navbar-header">
+    <button type="button" class="navbar-toggle" data-toggle="collapse"
+            data-target="#toolbar-collapse">
+      <span class="sr-only">Toggle navigation</span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </button>
+    <a class="navbar-brand" href="#">Signed</a>
+  </div>
+
+    <div class="navbar-collapse collapse" id="toolbar-collapse">
+      <ul class="nav navbar-nav">
+        {{ render_pagination(pagination) }}
+      </ul>
+    </div>
+</div>
+
+<div class="container-fluid">
+  {% for message in get_flashed_messages() %}
+  <div class=flash>{{ message }}</div>
+  {% endfor %}
+</div>
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-sm-12 col-md-12 main">
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
+          <tr>
+            <th style="width: 150px">Date</th>
+            <th style="width: 150px">Signed by</th>
+            <th style="width: 150px">Date signed</th>
+            <th>Message</th>
+          </tr>
+          </thead>
+          <tbody>
+          {% for entry in entries %}
+          <tr>
+            <td><a href="{{ url_for('log_entries', date=entry['signdate']) }}">{{
+              entry['signdate'] }}</a></td>
+            <td>{{ entry.get('sign', 'Unsigned') }}</td>
+            <td>{{ entry.get('created', 'Unsigned')}}</td>
+            <td>{{ entry.get('message', 'Unsigned') }}</td>
+          </tr>
+          {% endfor %}
+
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
