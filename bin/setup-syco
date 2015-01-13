@@ -1,0 +1,67 @@
+#!/bin/bash
+#
+# Bootstraped from VagrantFile, and installs syco-signer on the box.
+#
+
+
+__author__="daniel.lindh@amivono.com"
+__copyright__="Copyright 2014, Amivono AB"
+
+LOG_FILE=/var/log/setup-syco-signer.log
+#
+echo "Bootstrap vagrant box"
+echo
+
+
+#
+# Install syco
+#
+echo "Install rpm requirements for syco"
+if [[ ! ( -d /opt/syco) ]];
+then
+    yum -y install gcc kernel-devel make perl policycoreutils-python acpid git coreutils yum rpm e2fsprogs lvm2 grub openssh-server openssh-clients yum-presto man mlocate wget nss nspr nss-util >> $LOG_FILE 2>&1
+    yum -y erase atmel-firmware b43-openfwwf xorg-x11-drv-ati-firmware ipw2100-firmware ipw2200-firmware ivtv-firmware iwl1000-firmware iwl3945-firmware iwl4965-firmware iwl5000-firmware iwl5150-firmware iwl6000-firmware iwl6050-firmware libertas-usb8388-firmware rt61pci-firmware rt73usb-firmware zd1211-firmware >> $LOG_FILE 2>&1
+
+    #git clone https://github.com/systemconsole/syco.git /opt/syco >> $LOG_FILE 2>&1
+    git clone https://github.com/arlukin/syco.git /opt/syco >> $LOG_FILE 2>&1
+    cd /opt/syco
+    git checkout -b version-0.3.1 origin/version-0.3.1
+    rm -f /opt/syco/etc/general.cfg 2> /dev/null
+    rm -f /opt/syco/etc/install.cfg 2> /dev/null
+    rm -f /opt/syco/etc/passwordstore 2> /dev/null
+    ln -s /opt/syco/usr/mod-template/etc/minimal-general.cfg /opt/syco/etc/general.cfg
+    ln -s /opt/syco/usr/mod-template/etc/minimal-install.cfg /opt/syco/etc/install.cfg
+    ln -s /opt/syco/usr/mod-template/etc/minimal-passwordstore /opt/syco/etc/passwordstore
+fi
+
+#
+echo "Install syco"
+/opt/syco/bin/syco.py install-syco >> $LOG_FILE 2>&1
+
+echo "  iptables-setup"
+syco iptables-setup -v >> $LOG_FILE 2>&1
+
+echo "  hardening"
+syco hardening -v >> $LOG_FILE 2>&1
+
+echo "  Set 8.8.8.8 to dns in resolver, again. TODO, remove??"
+echo "  nameserver 8.8.8.8" >> /etc/resolv.conf
+
+echo "  Hostname vagrant-centos6, TODO, remove??"
+hostname vagrant-centos6
+
+echo "  httpd"
+syco install-httpd -v >> $LOG_FILE 2>&1
+
+echo "  rpm expect required for mysql installation."
+yum install -y expect >> $LOG_FILE 2>&1
+
+echo "  mysql"
+/usr/bin/expect >> $LOG_FILE 2>&1 << _EOF
+spawn syco install-mysql 1 512M -v
+expect "Verify the SYCO master password: "
+send "secret\r"
+send "secret\r"
+set timeout 200
+expect "Something that cant be found"
+_EOF

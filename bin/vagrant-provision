@@ -18,18 +18,30 @@ echo
 #
 grep 8.8.8.8  /etc/sysconfig/network-scripts/ifcfg-eth0 > /dev/null || \
 (
-    print_cmd  "Set 8.8.8.8 to dns in sysconfig"
+    echo  "Set 8.8.8.8 to dns in sysconfig"
     echo "PEERDNS=yes" >> /etc/sysconfig/network-scripts/ifcfg-eth0
     echo "DNS1=8.8.8.8" >> /etc/sysconfig/network-scripts/ifcfg-eth0
-    print_status "OK"
 )
 
 grep 8.8.8.8  /etc/resolv.conf > /dev/null || \
 (
-    print_cmd "Set 8.8.8.8 to dns in resolver"
+    echo "Set 8.8.8.8 to dns in resolver"
     echo "nameserver 8.8.8.8" >> /etc/resolv.conf
-    print_status "OK"
 )
+
+#
+# Setup-syco
+#
+./setup-syco
+
+#
+# Install syco-signer requirements
+#
+#iptables -A FORWARD -p tcp -s 10.101.1.7 -m multiport --dports 80,443 -j allowed_tcp
+yum install python-pip wsgi_module  # Enable epel first /etc/yum.repos.d/epel.repo
+pip install mysql-connector-python
+pip install Flask-sqlalchemy
+chmod -R u=rw,g=r,o=r,u+X,g+X,o+X  /usr/lib/python2.6/site-packages/
 
 
 #
