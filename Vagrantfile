@@ -12,7 +12,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.network "public_network", bridge: 'usb0: USB (dock)'
 
   # TODO, set owner? Need to be done after httpd is installed, owner: "apache", group: "apache"
-  config.vm.synced_folder ".", "/var/www/syco-signer/"
+  config.vm.synced_folder ".", "/var/syco-signer/"
   config.vm.synced_folder ".", "/vagrant/"
   config.vm.provision :shell, path: "./bin/vagrant-provision"
   config.vm.post_up_message = "Syco sandbox installed"

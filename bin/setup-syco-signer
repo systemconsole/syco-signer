@@ -1,0 +1,113 @@
+#!/bin/bash
+#
+# Install syco-signer.
+#
+# If the script is executed on a server which has already been set into
+# production, it will strive to fix potential errors without interfering with
+# the uptime more than necessary.
+#
+
+__author__="daniel@cybercow.se"
+__copyright__="2014 System Console project"
+
+
+LOG_FILE=/var/log/setup-syco-signer.log
+
+
+#
+# Syco-signer installation
+#
+echo "Installation of syco-signer"
+echo "---------------------------"
+echo
+
+
+#
+# Install requirements
+#
+echo "* Install requirements"
+
+# Activate epel
+if ! rpm -q epel-release-6-8.noarch >> $LOG_FILE 2>&1 ;
+then
+    rpm -Uhv http://mirrors.se.eu.kernel.org/fedora-epel/6/x86_64/epel-release-6-8.noarch.rpm
+fi
+
+if ! rpm -q gcc python-pip mod_wsgi >> $LOG_FILE 2>&1 ;
+then
+    yum -y install gcc python-pip mod_wsgi
+fi
+
+pip install mysql-connector-python Flask-sqlalchemy >> $LOG_FILE 2>&1 ;
+
+
+#
+# Setup database
+#
+/var/syco-signer/bin/setup-database.py
+
+
+#
+# Configure apache/httpd
+#
+echo "* Configure Apache (conf.d/*)"
+cp /var/syco-signer/etc/httpd/*.conf /etc/httpd/conf.d/
+sed -i 's/#LoadModule authnz_ldap_module /LoadModule authnz_ldap_module /' /etc/httpd/conf/httpd.conf
+sed -i 's/#LoadModule ldap_module /LoadModule ldap_module /' /etc/httpd/conf/httpd.conf
+
+
+
+#
+# Set permissions
+#
+# dotglob will let -r and * set permissions on hidden files.
+shopt -s dotglob
+
+# todo: cleanup?
+#print_cmd  "* Set permissions"
+#chown -R $RENTER_USER:$RENTER_GROUP ${RENTER_DIR}
+#chmod -R u=rw,g=r,o= ${RENTER_DIR}
+#chmod -R u+X,g+X,o+X ${RENTER_DIR}
+
+#chmod -R o+r ${RENTER_DIR}renter-ng
+#chmod u+x,g+x ${RENTER_DIR}bin/*
+#chmod u+x /var/renter/renter-ng/www/wsgi.py
+
+
+#
+echo "* Setup selinux"
+echo 0 > /selinux/enforce
+sed -i "s/^SELINUX=.*/SELINUX=permissive/" /etc/selinux/config
+#     'semanage -i - << _EOF\n' +
+#     'fcontext -at httpd_sys_content_t "${RENTER_DIR}www(/.*)?" \n' +
+#     'boolean -m --on httpd_can_sendmail \n' +
+#     'boolean -m --on httpd_can_network_connect \n' +
+#     '_EOF'
+# restorecon -R ${RENTER_DIR}www/
+echo "  * TODO - selinux is temporary disabled, it's so slow when deploying"
+
+
+#
+# Restart services
+#
+service httpd configtest
+service httpd restart
+
+
+#
+# Setup cron
+#
+echo "* Setup cron"
+cp /var/syco-signer/etc/cron.d/* /etc/cron.d/
+
+
+#
+# Run some cronjobs after release
+#
+# echo "$RENTER_DIR/renter-ng/manage.py republish >> $LOG_FILE 2>&1" | at now + 1 minute
+
+
+#
+# END
+#
+echo "setup-syco-signer complete"

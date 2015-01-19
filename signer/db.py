@@ -52,9 +52,10 @@ def unsigned_days():
     """
     cur = g.con.execute('SELECT min(signdate) as signdate FROM signed')
     first_sign_date = cur.fetchone()['signdate']
-    first_sign_date = datetime.combine(first_sign_date, datetime.min.time())
+
     if not first_sign_date:
         first_sign_date = datetime.now()
+    first_sign_date = datetime.combine(first_sign_date, datetime.min.time())
 
     def _key(x):
         return (datetime.now() - timedelta(x)).strftime('%Y-%m-%d')

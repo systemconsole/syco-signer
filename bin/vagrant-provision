@@ -3,15 +3,17 @@
 # Bootstraped from VagrantFile, and installs syco-signer on the box.
 #
 
-
-__author__="daniel.lindh@amivono.com"
-__copyright__="Copyright 2014, Amivono AB"
-
+__author__="daniel@cybercow.se"
+__copyright__="2014 System Console Project"
 
 #
-echo "Bootstrap vagrant box"
+echo "Provisioning a vagrant box"
 echo
 
+#
+echo "Override the hostname to vagrant-centos6"
+sed "s/HOSTNAME.*/HOSTNAME=vagrant-centos6/g" /etc/sysconfig/network
+hostname vagrant-centos6
 
 # The vagrant virtual box uses DHCP, this ensures that the box resolves
 # dns with google dns.
@@ -19,8 +21,10 @@ echo
 grep 8.8.8.8  /etc/sysconfig/network-scripts/ifcfg-eth0 > /dev/null || \
 (
     echo  "Set 8.8.8.8 to dns in sysconfig"
-    echo "PEERDNS=yes" >> /etc/sysconfig/network-scripts/ifcfg-eth0
+    echo "PEERDNS=no" >> /etc/sysconfig/network-scripts/ifcfg-eth0
     echo "DNS1=8.8.8.8" >> /etc/sysconfig/network-scripts/ifcfg-eth0
+    echo "PEERDNS=no" >> /etc/sysconfig/network-scripts/ifcfg-eth1
+    echo "DNS1=8.8.8.8" >> /etc/sysconfig/network-scripts/ifcfg-eth1
 )
 
 grep 8.8.8.8  /etc/resolv.conf > /dev/null || \
@@ -32,42 +36,9 @@ grep 8.8.8.8  /etc/resolv.conf > /dev/null || \
 #
 # Setup-syco
 #
-./setup-syco
-
-#
-# Install syco-signer requirements
-#
-#iptables -A FORWARD -p tcp -s 10.101.1.7 -m multiport --dports 80,443 -j allowed_tcp
-yum install python-pip wsgi_module  # Enable epel first /etc/yum.repos.d/epel.repo
-pip install mysql-connector-python
-pip install Flask-sqlalchemy
-chmod -R u=rw,g=r,o=r,u+X,g+X,o+X  /usr/lib/python2.6/site-packages/
-
+/var/syco-signer/bin/setup-syco
 
 #
 # Install syco-signer
 #
-echo
-echo
-#/var/renter/bin/setup-syco-signer
-
-
-#
-# Prepare python interpreter for pycharm debugging.
-#
-#echo "* Create /opt/python_env/renter/bin/python2.7.renter used by pycharm "
-#cat > /opt/python_env/renter/bin/python2.7.renter << EOF
-##!/bin/bash
-## Renter should be run by the renter user. Required when debugging from pycharm.
-#sudo -u renter /opt/python_env/renter/bin/python2.7 "\$@"
-#EOF
-#chown renter:renter /opt/python_env/renter/bin/python2.7.renter
-#chmod 755 /opt/python_env/renter/bin/python2.7.renter
-
-
-#
-# Looks lite reboot don't mount the shared folder. Need to run "vagrant up".
-#
-#echo "Restarting the box after installations, to verify that it can handle"
-#echo "a reboot. Needs to be started again with *vagrant up*"
-#halt
+/var/syco-signer/bin/setup-syco-signer

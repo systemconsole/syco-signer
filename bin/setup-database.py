@@ -21,9 +21,9 @@ from sqlalchemy import create_engine
 #
 
 MYSQL_USER = 'root'
-MYSQL_PASSWORD = 'root'
-CON_NO_DATABASE = "mysql+mysqlconnector://root:root@127.0.0.1/?charset=utf8"
-CON_DATABASE = "mysql+mysqlconnector://root:root@127.0.0.1/syslog?charset=utf8"
+MYSQL_PASSWORD = 'secret'
+CON_NO_DATABASE = "mysql+mysqlconnector://root:secret@127.0.0.1/?charset=utf8"
+CON_DATABASE = "mysql+mysqlconnector://root:secret@127.0.0.1/syslog?charset=utf8"
 
 
 #
@@ -201,10 +201,11 @@ if create_systemevents:
 if create_log_viewer:
     mysql_load('create-signer.sql')
 
-if load_system_events:
-    mysql_load('data-systemevents.sql')
+# TODO Cleanup ?
+#if load_system_events:
+#    mysql_load('data-systemevents.sql')
 
-if load_log_viewer:
-    mysql_load('data-signer.sql')
+#if load_log_viewer:
+#    mysql_load('data-signer.sql')
 
 print "Done"
