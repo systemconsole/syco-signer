@@ -9,8 +9,9 @@
 
 """
 from datetime import datetime, timedelta
-from collections import OrderedDict
 from itertools import islice
+from operator import itemgetter
+
 
 from sqlalchemy.sql.expression import text
 from flask import g
@@ -18,13 +19,20 @@ from flask import g
 from signer import PER_PAGE
 
 
-def signed_days_count():
+def signed(offset, limit, sort, order, search):
+    return {
+        'total': signed_count(search),
+        'rows': signed_result(int(offset), int(limit), sort, order, search),
+    }
+
+
+def signed_count(search):
     """Calculate number of signed days."""
     days = unsigned_days()
     return len(days)
 
 
-def signed_days_for_page(page):
+def signed_result(offset, limit, sort, order, search):
     """Return a dict with all signed and unsigned days since first sign.
 
     days['2014-01-01'] = {'signdate': '2014-01-01', 'sign':... }
@@ -38,9 +46,10 @@ def signed_days_for_page(page):
         key = row['signdate'] = row['signdate'].strftime('%Y-%m-%d')
         days[key] = row
 
-    start = (page-1)*PER_PAGE
-    stop = start+PER_PAGE
-    return (x[1] for x in islice(days.iteritems(), start, stop))
+    reverse = True if order == 'asc' else False
+    sorted_days = sorted(days, key=itemgetter(sort), reverse=reverse)
+
+    return [x for x in islice(sorted_days, offset, offset+limit)]
 
 
 def unsigned_days():
@@ -54,21 +63,34 @@ def unsigned_days():
     first_sign_date = cur.fetchone()['signdate']
 
     if not first_sign_date:
-        first_sign_date = datetime.now()
+        first_sign_date = datetime.now() - timedelta(1)
     first_sign_date = datetime.combine(first_sign_date, datetime.min.time())
 
     def _key(x):
         return (datetime.now() - timedelta(x)).strftime('%Y-%m-%d')
 
     days = (datetime.now() - first_sign_date).days
-    unsigned = OrderedDict()
+    unsigned = []
     for x in xrange(days):
-        unsigned[_key(x)] = {'signdate': _key(x)}
+        unsigned.append({
+            'signdate': _key(x),
+            'sign': None,
+            'created': None,
+            'message': None
+        })
 
     return unsigned
 
 
-def signed(date):
+
+
+
+
+
+
+
+
+def signed_old(date):
     cur = g.con.execute(
         text(
             'SELECT '

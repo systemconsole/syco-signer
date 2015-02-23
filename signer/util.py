@@ -10,12 +10,16 @@
 
 """
 
+import os.path
 import subprocess
-import sys
 import fcntl
 import imp
 import os.path
 import errno
+from flask.json import current_app, dumps, request
+import sys
+
+
 
 
 def config(filename, root_path):
@@ -77,3 +81,24 @@ def only_allow_one_instance(pid_file):
     except IOError:
         print("Another instance is running, exit!")
         sys.exit(1)
+
+
+def jsonify_list(data):
+    """Creates a JSON view response.
+
+    This is a modified version of flask.helpers.jsonify, but this function
+    takes an OrderedDict so the json file can be printed in proper order.
+
+    It also decodes utf-8 characters.
+    """
+    assert data is not None
+    indent = None
+    if (current_app.config['JSONIFY_PRETTYPRINT_REGULAR'] and
+            not request.is_xhr):
+        indent = 2
+    data = dumps(data, indent=indent, sort_keys=False)
+
+    mimetype = 'application/json; charset=utf-8'
+    response = current_app.response_class(data, mimetype=mimetype)
+
+    return response

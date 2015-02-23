@@ -33,7 +33,7 @@ from sqlalchemy.exc import IntegrityError
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 import db
-from util import config
+from util import config, jsonify_list
 
 # create our little application :)
 app = Flask(__name__)
@@ -152,10 +152,26 @@ def requires_auth(f):
 #
 
 
-@app.route('/', defaults={'page': 1})
-@app.route('/<int:page>')
+@app.route('/')
 @requires_auth
-def signed(page):
+def signed():
+    return render_template('signed.html', REMOTE_USER=remote_user())
+
+
+@app.route('/signed.json')
+@requires_auth
+def signed_json():
+    offset = request.args.get('offset', 0)
+    limit = request.args.get('limit', 10)
+    sort = request.args.get('sort', "profile_id")
+    order = request.args.get('order', "desc")
+    search = request.args.get('search', "")
+
+    entries = db.signed(offset, limit, sort, order, search)
+    return jsonify_list(entries)
+
+
+
     count = db.signed_days_count()
     entries = db.signed_days_for_page(page)
     if not entries and page != 1:
@@ -166,7 +182,6 @@ def signed(page):
         pagination=Pagination(page, PER_PAGE, count),
         REMOTE_USER=remote_user()
     )
-
 
 #
 # LOG-ENTRIES
@@ -182,9 +197,8 @@ def log_entries(date, page):
     message = request.args.get('message', "")
     distinct = request.args.get('distinct', False)
 
-    # TODO: remove hardcoded date.
     if app.config['DEBUG'] is True:
-        date = '2015-02-22'
+        date = '2014-10-26'
 
     count = db.log_entries_count(date, from_host, sys_log_tag, message, distinct)
     entries = db.log_entries_for_page(date, page, from_host, sys_log_tag, message, distinct)
@@ -192,7 +206,7 @@ def log_entries(date, page):
         abort(404)
 
     return render_template(
-        'log-entries.html', entries=entries, signed=db.signed(date),
+        'log-entries.html', entries=entries, signed=db.signed_old(date),
         pagination=Pagination(page, PER_PAGE, count),
         REMOTE_USER=remote_user(),
         from_host=from_host, sys_log_tag=sys_log_tag, message=message,

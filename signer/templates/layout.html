@@ -12,27 +12,17 @@
   <title>Syco Signer</title>
 
   <!-- Bootstrap core CSS -->
-  <link rel="stylesheet" type="text/css"
-        href="{{ url_for('static', filename='bootstrap.min.css') }}">
-  <link href="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"
-        rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bootstrap.3.3.2/css/bootstrap.min.css') }}">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bootstrap-table.min.css') }}">
 
   <!-- Custom styles for this template -->
-  <link rel="stylesheet" type="text/css"
-        href="{{ url_for('static', filename='style.css') }}">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
 
   <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
   <!--[if lt IE 9]>
   <script src="{{ url_for('static', filename='html5shiv.js') }}"></script>
   <script src="{{ url_for('static', filename='respond.min.js') }}"></script>
   <![endif]-->
-
-  <script type="text/javascript" language="javascript"
-          src="https://www.datatables.net/release-datatables/media/js/jquery.js">
-  </script>
-  <script type="text/javascript" language="javascript"
-          src="https://www.datatables.net/release-datatables/media/js/jquery.dataTables.js">
-  </script>
 
 </head>
 
@@ -68,7 +58,8 @@
 ================================================== -->
 <!-- Placed at the end of the document so the pages load faster -->
 <script src="{{ url_for('static', filename='jquery.min.js') }}"></script>
-<script src="{{ url_for('static', filename='bootstrap.min.js') }}"></script>
+<script src="{{ url_for('static', filename='bootstrap.3.3.2/js/bootstrap.min.js') }}"></script>
+<script src="{{ url_for('static', filename='bootstrap-table.min.js') }}"></script>
 
 
 </body>

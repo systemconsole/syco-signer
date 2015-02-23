@@ -38,7 +38,7 @@ syco-signer
 * Dump data from prod server
   
   mysqldump --tables myTable --where="id < 1000"
-  mysqldump -u root -p Syslog SystemEvents --where "DeviceReportedTime between '2014-10-26 00:00' and '2014-10-26 12:00'" --no-create-info > systemevents.sql
+  mysqldump -u root -p Syslog SystemEvents --where "DeviceReportedTime between '2015-02-20 00:00' and '2014-10-22 12:00'" --no-create-info > systemevents.sql
 
 
 
