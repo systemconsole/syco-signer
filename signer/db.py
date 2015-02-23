@@ -86,17 +86,24 @@ def signed(date):
 
 def log_entries_count(date, from_host, sys_log_tag, message, distinct):
     day = datetime.strptime(date, '%Y-%m-%d')
+
+    sql = text("""
+SELECT
+  count(*) as log_entries
+FROM
+    (
+        SELECT
+            FromHost, SysLogTag, Message
+        FROM
+            SystemEvents
+        WHERE
+            DeviceReportedTime BETWEEN :from_date AND :to_date """ +
+        _log_entries_where(from_host, sys_log_tag, message) +
+        _log_entries_group_by(distinct) + """
+    ) s1;
+""")
     cur = g.con.execute(
-        text(
-            'SELECT ' +
-                'count(*) as log_entries ' +
-            'FROM ' +
-                'SystemEvents ' +
-            'WHERE ' +
-                'DeviceReportedTime BETWEEN :from_date AND :to_date ' +
-                _log_entries_where(from_host, sys_log_tag, message) +
-                _log_entries_group_by(distinct)
-        ),
+        sql,
         from_date=day.strftime('%Y-%m-%d 00:00:00'),
         to_date=day.strftime('%Y-%m-%d 23:59:59'),
         from_host=from_host,
@@ -109,16 +116,17 @@ def log_entries_count(date, from_host, sys_log_tag, message, distinct):
 
 
 def log_entries_for_page(date, page, from_host, sys_log_tag, message, distinct):
+    query = text(
+        'SELECT *, count(ID) as counter FROM SystemEvents ' +
+        'WHERE DeviceReportedTime BETWEEN :from_date AND :to_date ' +
+        _log_entries_where(from_host, sys_log_tag, message) +
+        _log_entries_group_by(distinct) +
+        'ORDER BY id DESC ' +
+        'limit :offset, :limit'
+    )
     day = datetime.strptime(date, '%Y-%m-%d')
     cur = g.con.execute(
-        text(
-            'SELECT *, count(ID) as counter FROM SystemEvents ' +
-            'WHERE DeviceReportedTime BETWEEN :from_date AND :to_date ' +
-            _log_entries_where(from_host, sys_log_tag, message) +
-            _log_entries_group_by(distinct) +
-            'ORDER BY id DESC ' +
-            'limit :offset, :limit'
-        ),
+        query,
         from_date=day.strftime('%Y-%m-%d 00:00:00'),
         to_date=day.strftime('%Y-%m-%d 23:59:59'),
         from_host=from_host,
@@ -150,6 +158,8 @@ def _log_entries_group_by(distinct):
     group_by = ''
     if distinct == '1':
         group_by += 'GROUP BY FromHost, SysLogTag, Message '
+    else:
+        group_by += 'GROUP BY ID '
     return group_by
 
 add_entry_sql = text("""

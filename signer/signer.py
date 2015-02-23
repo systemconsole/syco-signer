@@ -177,14 +177,14 @@ def signed(page):
 @requires_auth
 def log_entries(date, page):
     """Takes a date with format 2013-01-23"""
-    from_host = request.args.get('from_host', None)
-    sys_log_tag = request.args.get('sys_log_tag', None)
-    message = request.args.get('message', None)
-    distinct = request.args.get('distinct', None)
+    from_host = request.args.get('from_host', "")
+    sys_log_tag = request.args.get('sys_log_tag', "")
+    message = request.args.get('message', "")
+    distinct = request.args.get('distinct', False)
 
     # TODO: remove hardcoded date.
     if app.config['DEBUG'] is True:
-        date = '2014-10-26'
+        date = '2015-02-22'
 
     count = db.log_entries_count(date, from_host, sys_log_tag, message, distinct)
     entries = db.log_entries_for_page(date, page, from_host, sys_log_tag, message, distinct)
@@ -310,7 +310,6 @@ def trigger_edit_save(id):
 
     return render_template('trigger-edit.html', entry=entry)
 
-
 @app.route('/trigger/delete/<id>')
 @requires_auth
 def trigger_delete(id):
@@ -323,7 +322,7 @@ def trigger_delete(id):
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host="0.0.0.0")
 
 
 

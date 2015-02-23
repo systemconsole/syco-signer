@@ -23,7 +23,7 @@
 <div class="container-fluid">
   <div class="row">
     <div class="col-sm-12 col-md-12 main">
-      <form class="form-horizontal" role="form" method="post" action="{{ url_for('trigger_add') }}">
+      <form class="form-horizontal" role="form" method="post" action="{{ url_for('trigger_add_save') }}">
 
         <div class="form-group">
           <label class="col-sm-4 control-label">User</label>
@@ -68,7 +68,7 @@
 
         <div class="form-group">
           <div class="col-sm-offset-2 col-sm-10">
-            <input type="hidden" name="inputBackUrl" value="{{entry['back_url'] if 'back_url' in entry else '/trigger'}}">
+            <input type="hidden" name="inputBackUrl" value="{{entry['back_url'] if 'back_url' in entry else url_for('trigger') }}">
             <button type="submit" class="btn btn-primary">Ok</button>
             <a href="{{entry['back_url'] if 'back_url' in entry else url_for('trigger') }}" class="btn btn-default" role="button">Cancel</a>
           </div>
