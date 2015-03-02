@@ -89,32 +89,21 @@ def unsigned_days():
 # LOG-ENTRIES
 #
 
+def log_entries(
+    date, offset, limit, sort, order, search,
+    from_host, sys_log_tag, message, distinct
+):
+    return {
+        'total': log_entries_count(date, search, from_host, sys_log_tag, message, distinct),
+        'rows': log_entries_result(
+            date, offset, limit, sort, order, search,
+            from_host, sys_log_tag, message, distinct
+        ),
+    }
 
 
-
-
-
-
-def signed_old(date):
-    cur = g.con.execute(
-        text(
-            'SELECT '
-                'id, sign, message, signdate, created '
-            'FROM '
-                'signed '
-            'WHERE '
-                'signdate = :signdate'),
-        signdate=date
-    )
-    result = cur.fetchone()
-    cur.close()
-    return result
-
-
-def log_entries_count(date, from_host, sys_log_tag, message, distinct):
-    day = datetime.strptime(date, '%Y-%m-%d')
-
-    sql = text("""
+def sql_log_entries_count(from_host, sys_log_tag, message, distinct):
+    return text("""
 SELECT
   count(*) as log_entries
 FROM
@@ -125,49 +114,31 @@ FROM
             SystemEvents
         WHERE
             DeviceReportedTime BETWEEN :from_date AND :to_date """ +
-        _log_entries_where(from_host, sys_log_tag, message) +
-        _log_entries_group_by(distinct) + """
+            sql_log_entries_where(from_host, sys_log_tag, message) +
+            sql_log_entries_group_by(distinct) + """
     ) s1;
 """)
-    cur = g.con.execute(
-        sql,
-        from_date=day.strftime('%Y-%m-%d 00:00:00'),
-        to_date=day.strftime('%Y-%m-%d 23:59:59'),
-        from_host=from_host,
-        sys_log_tag=sys_log_tag,
-        message=message
-    )
-    num = cur.fetchone()['log_entries']
-    cur.close()
-    return num
 
 
-def log_entries_for_page(date, page, from_host, sys_log_tag, message, distinct):
-    query = text(
-        'SELECT *, count(ID) as counter FROM SystemEvents ' +
-        'WHERE DeviceReportedTime BETWEEN :from_date AND :to_date ' +
-        _log_entries_where(from_host, sys_log_tag, message) +
-        _log_entries_group_by(distinct) +
-        'ORDER BY id DESC ' +
-        'limit :offset, :limit'
-    )
-    day = datetime.strptime(date, '%Y-%m-%d')
-    cur = g.con.execute(
-        query,
-        from_date=day.strftime('%Y-%m-%d 00:00:00'),
-        to_date=day.strftime('%Y-%m-%d 23:59:59'),
-        from_host=from_host,
-        sys_log_tag=sys_log_tag,
-        message=message,
-        offset=(page-1)*PER_PAGE,
-        limit=PER_PAGE
-    )
-    entries = cur.fetchall()
-    cur.close()
-    return entries
+def sql_log_entries_result(from_host, sys_log_tag, message, distinct, sort, order):
+    return text("""
+SELECT
+    *,
+    count(ID) as counter
+FROM
+    SystemEvents
+Where
+    DeviceReportedTime BETWEEN :from_date AND :to_date """ +
+    sql_log_entries_where(from_host, sys_log_tag, message) +
+    sql_log_entries_group_by(distinct) + """
+ORDER BY
+    {sort} {order}
+LIMIT
+    :offset, :limit
+""".format(sort=sort, order=order))
 
 
-def _log_entries_where(from_host, sys_log_tag, message):
+def sql_log_entries_where(from_host, sys_log_tag, message):
     where = ''
     if from_host:
         where += 'AND FromHost like :from_host '
@@ -181,13 +152,108 @@ def _log_entries_where(from_host, sys_log_tag, message):
     return where
 
 
-def _log_entries_group_by(distinct):
-    group_by = ''
-    if distinct == '1':
-        group_by += 'GROUP BY FromHost, SysLogTag, Message '
+def sql_log_entries_group_by(distinct):
+    if distinct:
+        return 'GROUP BY FromHost, SysLogTag, Message '
     else:
-        group_by += 'GROUP BY ID '
-    return group_by
+        return 'GROUP BY ID '
+
+
+def log_entries_count(date, search, from_host, sys_log_tag, message, distinct):
+    """Calculate number of log_entries."""
+    day = datetime.strptime(date, '%Y-%m-%d')
+
+    cur = g.con.execute(
+        sql_log_entries_count(from_host, sys_log_tag, message, distinct),
+        from_date=day.strftime('%Y-%m-%d 00:00:00'),
+        to_date=day.strftime('%Y-%m-%d 23:59:59'),
+        from_host=from_host,
+        sys_log_tag=sys_log_tag,
+        message=message
+    )
+    num = cur.fetchone()['log_entries']
+    cur.close()
+    return num
+
+
+def log_entries_result(
+    date, offset, limit, sort, order, search,
+    from_host, sys_log_tag, message, distinct
+):
+    def format_row(row):
+        row = dict(row)
+        row['ReceivedAt'] = row['ReceivedAt'].strftime('%Y-%m-%d %H:%M:%S')
+        row['DeviceReportedTime'] = row['DeviceReportedTime'].strftime('%Y-%m-%d %H:%M:%S')
+        return row
+
+    day = datetime.strptime(date, '%Y-%m-%d')
+    sql=sql_log_entries_result(from_host, sys_log_tag, message, distinct, sort, order)
+    cur = g.con.execute(
+        sql,
+        from_date=day.strftime('%Y-%m-%d 00:00:00'),
+        to_date=day.strftime('%Y-%m-%d 23:59:59'),
+        offset=offset,
+        limit=limit,
+        sort=sort,
+        order=order,
+        from_host=from_host,
+        sys_log_tag=sys_log_tag,
+        message=message
+    )
+    entries = [format_row(row) for row in cur.fetchall()]
+    cur.close()
+    return entries
+
+
+sql_log_entries_signed = text("""
+SELECT
+    id, sign, message, signdate, created
+FROM
+    signed
+WHERE
+    signdate = :signdate
+""")
+
+
+def log_entries_signed(signdate):
+    cur = g.con.execute(sql_log_entries_signed, signdate=signdate)
+    result = cur.fetchone()
+    cur.close()
+    return result
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 add_entry_sql = text("""
 REPLACE INTO signed (

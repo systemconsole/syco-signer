@@ -173,7 +173,7 @@ def signed():
 def signed_json():
     offset = request.args.get('offset', 0)
     limit = request.args.get('limit', 10)
-    sort = request.args.get('sort', "profile_id")
+    sort = request.args.get('sort', "signdate")
     order = request.args.get('order', "desc")
     search = request.args.get('search', "")
 
@@ -185,31 +185,40 @@ def signed_json():
 # LOG-ENTRIES
 #
 
-@app.route('/log-entries/<date>', defaults={'page': 1})
-@app.route('/log-entries/<date>/<int:page>')
+
+@app.route('/log-entries/<date>')
 @requires_auth
-def log_entries(date, page):
-    """Takes a date with format 2013-01-23"""
+def log_entries(date):
+    return render_template(
+        'log-entries.html', REMOTE_USER=remote_user(),
+        date=date,
+        signed=db.log_entries_signed(date)
+    )
+
+
+@app.route('/log-entries.json/<date>')
+@requires_auth
+def log_entries_json(date):
+    offset = request.args.get('offset', 0, type=int)
+    limit = request.args.get('limit', 10, type=int)
+    sort = request.args.get('sort', "id")
+    order = request.args.get('order', "desc")
+    search = request.args.get('search', "")
+
+    #
     from_host = request.args.get('from_host', "")
     sys_log_tag = request.args.get('sys_log_tag', "")
     message = request.args.get('message', "")
-    distinct = request.args.get('distinct', False)
+    distinct = True if request.args.get('distinct') == 'true' else False
 
     if app.config['DEBUG'] is True:
         date = '2014-10-26'
 
-    count = db.log_entries_count(date, from_host, sys_log_tag, message, distinct)
-    entries = db.log_entries_for_page(date, page, from_host, sys_log_tag, message, distinct)
-    if not entries and page != 1:
-        abort(404)
-
-    return render_template(
-        'log-entries.html', entries=entries, signed=db.signed_old(date),
-        pagination=Pagination(page, PER_PAGE, count),
-        REMOTE_USER=remote_user(),
-        from_host=from_host, sys_log_tag=sys_log_tag, message=message,
-        distinct=distinct
+    entries = db.log_entries(
+        date, offset, limit, sort, order, search,
+        from_host, sys_log_tag, message, distinct
     )
+    return jsonify_list(entries)
 
 
 @app.route('/log-entries/<date>', methods=['POST'])

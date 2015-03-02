@@ -2,120 +2,162 @@
 {% extends "layout.html" %}
 {% block body %}
 
-<script type="text/javascript" charset="utf-8">
-  $(document).ready(function () {
-    fnShowHide();
-    fnShowHide();
-  });
+  <div class="navbar navbar-default" role="navigation" id="toolbar">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse"
+              data-target="#toolbar-collapse">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="#">Log entries</a>
+    </div>
 
-  function fnShowHide() {
-    if ($('#toggle').text() == 'Display few') {
-      $('td:nth-child(3),th:nth-child(3)').hide();
-      $('td:nth-child(4),th:nth-child(4)').hide();
-      $('td:nth-child(5),th:nth-child(5)').hide();
-      $('#toggle').text('Display all');
-    }
-    else {
-      $('td:nth-child(3),th:nth-child(3)').show();
-      $('td:nth-child(4),th:nth-child(4)').show();
-      $('td:nth-child(5),th:nth-child(5)').show();
-      $('#toggle').text('Display few');
-    }
-
-  }
-</script>
-
-<div class="navbar navbar-default" role="navigation" id="toolbar">
-  <div class="navbar-header">
-    <button type="button" class="navbar-toggle" data-toggle="collapse"
-            data-target="#toolbar-collapse">
-      <span class="sr-only">Toggle navigation</span>
-      <span class="icon-bar"></span>
-      <span class="icon-bar"></span>
-      <span class="icon-bar"></span>
-    </button>
-    <a class="navbar-brand" href="#">Log entries</a>
+    <div class="navbar-collapse collapse" id="toolbar-collapse">
+      {% if signed %}
+        <ul class="nav navbar-nav">
+          <li>
+            <a>Signed by: {{ signed['sign'] }} - {{ signed['message'] }}</a>
+          </li>
+        </ul>
+      {% else %}
+        <form class="navbar-form navbar-left" role="sign" method=post>
+          <div class="form-group">
+            <input type="text" class="form-control" name="sign_message"
+                   placeholder="Sign message" value="{{ signed['message'] }}">
+          </div>
+          <button type="submit" class="btn btn-default">Sign</button>
+        </form>
+      {% endif %}
+    </div>
   </div>
-
-  <div class="navbar-collapse collapse" id="toolbar-collapse">
-    <ul class="nav navbar-nav">
-      <li><a href="javascript:void(0);" onclick="fnShowHide();" id="toggle">Display
-        all</a></li>
-    </ul>
-    {% if signed %}
-      <ul class="nav navbar-nav">
-        <li><a>Signed by: {{ signed['sign'] }} - {{ signed['message'] }}</a></li>
-       </ul>
-    {% else %}
-      <form class="navbar-form navbar-left" role="sign" method=post>
-        <div class="form-group">
-          <input type="text" class="form-control" name="sign_message"
-                 placeholder="Sign message" value="{{ signed['message'] }}">
-        </div>
-        <button type="submit" class="btn btn-default">Sign</button>
-      </form>
-    {% endif %}
-    <ul class="nav navbar-nav">
-      {{ render_pagination(pagination) }}
-    </ul>
-  </div>
-</div>
 
 <div class="container-fluid">
-  {% for category, message in get_flashed_messages(with_categories=true) %}
-    {% if message %}
-     <div class="{{ category }}">{{ message }}</div>
-    {% endif %}
+  {% for message in get_flashed_messages() %}
+  <div class=flash>{{ message }}</div>
   {% endfor %}
 </div>
 
 <div class="container-fluid">
   <div class="row">
-    <div class="col-sm-12 col-md-12 main">
-      <div class="table-responsive">
-        <form class="form-inline" name="input" method="get">
-          <table class="table table-striped" id="example">
-            <thead>
-            <tr>
-              <th style="width: 70px; vertical-align: bottom;"></th>
-              <th style="width: 150px">ReceivedAt</th>
-              <th style="width: 150px">DeviceReportedTime</th>
-              <th style="width: 70px">Facility</th>
-              <th style="width: 70px">Priority</th>
-              <th style="width: 150px">FromHost<input type="text" name="from_host" class="form-control" value="{{ from_host }}"></th>
-              <th style="width: 150px">SysLogTag<input type="text" name="sys_log_tag" class="form-control" value="{{ sys_log_tag }}"></th>
-              <th>Message
-               <div class="form-group" style="display: block">
-                  <input type="text" name="message" class="form-control" value="{{ message }}" style="width: 50%;">
-                  <label class="checkbox-inline">
-                    <input type="checkbox" name="distinct" value="1" {% if distinct == '1' %}checked{% endif %}> Distinct
-                  </label>
-                 <button type="submit" class="btn btn-primary btn-xs" >Filter</button>
-                </div>
-              </th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for entry in entries %}
-            <tr>
-              <td><a href="{{ url_for('trigger_add_system_event', systemevents_id=entry['ID']) }}" class="btn btn-primary btn-xs" role="button">Trigger</a></td>
-              <td>{{ entry['ReceivedAt'] }}</td>
-              <td>{{ entry['DeviceReportedTime'] }}</td>
-              <td>{{ entry['Facility'] }}</td>
-              <td>{{ entry['Priority'] }}</td>
-              <td>{{ entry['FromHost'] }}</td>
-              <td>{{ entry['SysLogTag'] }}</td>
-              <td>{{ entry['Message'] }}</td>
-              <td>{{ entry['counter'] }}</td>
-            </tr>
-            {% endfor %}
+    <div class="col-sm-12 col-md-12">
+      <div id="logEntriesToolbar" class="btn-group">
+      <form class="form-inline">
+        FromHost <input type="text" id="from_host" class="form-control" value="">
+        SysLogTag <input type="text" id="sys_log_tag" class="form-control" value="">
+        Message <input type="text" id="message" class="form-control" value="" style="width: 200px;">
+        Distinct <input type="checkbox" id="distinct" value="1" {% if distinct == '1' %}checked{% endif %}>
+      </form>
+      </div>
+      <table
+          id="logEntriesTable"
+          data-toggle="table"
+          data-url="/log-entries.json/{{ date }}"
+          data-classes="table table-hover table-condensed"
+          data-striped="true"
+          data-sort-name="ID"
+          data-search="false"
+          data-show-refresh="true"
+          data-show-toggle="true"
+          data-show-columns="true"
+          data-pagination="true"
+          data-side-pagination="server"
+          data-page-list="[5, 10, 20, 50, 100, 200]"
+          data-page-size=10
+          data-toolbar="#logEntriesToolbar"
+          data-query-params="getLogEntriesParams">
+        <thead>
+        <tr>
+          <th data-field="action" data-formatter="actionFormatter" data-events="actionEvents">#</th>
+          <th data-field="ID" data-sortable="true">Id</th>
+          <th data-field="ReceivedAt" data-visible="false" data-sortable="true">ReceivedAt</th>
+          <th data-field="DeviceReportedTime" data-sortable="true">DeviceReportedTime</th>
+          <th data-field="Facility" data-sortable="true">Facility</th>
+          <th data-field="Priority" data-sortable="true">Priority</th>
+          <th data-field="FromHost" data-sortable="true">FromHost</th>
+          <th data-field="SysLogTag" data-sortable="true">SysLogTag</th>
+          <th class="col-lg-12" data-field="Message">Message</th>
+          <th data-field="counter" data-sortable="true">counter</th>
 
-            </tbody>
-          </table>
-        </form>
+          <th data-field="EventUser" data-visible="false">EventUser</th>
+          <th data-field="EventBinaryData" data-visible="false">EventBinaryData</th>
+          <th data-field="SystemID" data-visible="false">SystemID</th>
+          <th data-field="MinUsage" data-visible="false">MinUsage</th>
+          <th data-field="GenericFileName" data-visible="false">GenericFileName</th>
+          <th data-field="Importance" data-visible="false">Importance</th>
+          <th data-field="MaxUsage" data-visible="false">MaxUsage</th>
+          <th data-field="EventSource" data-visible="false">EventSource</th>
+          <th data-field="CurrUsage" data-visible="false">CurrUsage</th>
+          <th data-field="CustomerID" data-visible="false">CustomerID</th>
+          <th data-field="NTSeverity" data-visible="false">NTSeverity</th>
+          <th data-field="EventID" data-visible="false">EventID</th>
+          <th data-field="processid" data-visible="false">processid</th>
+          <th data-field="EventLogType" data-visible="false">EventLogType</th>
+          <th data-field="checksum" data-visible="false">checksum</th>
+          <th data-field="EventCategory" data-visible="false">EventCategory</th>
+          <th data-field="MaxAvailable" data-visible="false">MaxAvailable</th>
+          <th data-field="InfoUnit" data-visible="false">InfoUnit</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
       </div>
     </div>
   </div>
 </div>
+{% endblock %}
+
+
+{% block javascript %}
+
+  <script type="text/javascript">
+    //
+    // TOOLBAR
+    //
+    function getLogEntriesParams(params) {
+      params["from_host"] = $('#from_host').val();
+      params["sys_log_tag"] = $('#sys_log_tag').val();
+      params["message"] = $('#message').val();
+      params["distinct"] = $('#distinct').is(':checked');
+      return params;
+    }
+
+
+    $("#from_host, #sys_log_tag, #message, #distinct").bind("input change propertychange", function (evt) {
+      // If it's the propertychange event, make sure it's the value that changed.
+      if (window.event && event.type == "propertychange" && event.propertyName != "value")
+        return;
+
+      // Clear any previously set timer before setting a fresh one
+      window.clearTimeout($(this).data("timeout"));
+      $(this).data("timeout", setTimeout(function () {
+        // Do what should be done
+        $('#logEntriesTable').bootstrapTable('refresh');
+      }, 1000));
+    });
+
+
+    //
+    // Column events / Actions
+    //
+
+
+    function actionFormatter(value, row, index) {
+      return [
+        '<a class="remove" href="javascript:void(0)" title="Remove">',
+        '<i class="glyphicon glyphicon-remove"></i>',
+        '</a>'
+      ].join('');
+    }
+
+    window.actionEvents = {
+      'click .remove': function (e, value, row, index) {
+        window.location.assign('{{ url_for('trigger_add') }}/' + row['ID']);
+      }
+    };
+
+  </script>
 
 {% endblock %}
