@@ -148,11 +148,21 @@ def requires_auth(f):
 
 
 #
+# DASHBOARD
+#
+
+@app.route('/')
+@requires_auth
+def dashboard():
+    return render_template('dashboard.html', REMOTE_USER=remote_user())
+
+
+#
 # SIGNED
 #
 
 
-@app.route('/')
+@app.route('/signed')
 @requires_auth
 def signed():
     return render_template('signed.html', REMOTE_USER=remote_user())
@@ -170,18 +180,6 @@ def signed_json():
     entries = db.signed(offset, limit, sort, order, search)
     return jsonify_list(entries)
 
-
-
-    count = db.signed_days_count()
-    entries = db.signed_days_for_page(page)
-    if not entries and page != 1:
-        abort(404)
-
-    return render_template(
-        'signed.html', entries=entries,
-        pagination=Pagination(page, PER_PAGE, count),
-        REMOTE_USER=remote_user()
-    )
 
 #
 # LOG-ENTRIES
@@ -324,6 +322,7 @@ def trigger_edit_save(id):
 
     return render_template('trigger-edit.html', entry=entry)
 
+
 @app.route('/trigger/delete/<id>')
 @requires_auth
 def trigger_delete(id):
@@ -337,6 +336,3 @@ def trigger_delete(id):
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0")
-
-
-

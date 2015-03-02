@@ -40,7 +40,7 @@ syco-signer
   mysqldump --tables myTable --where="id < 1000"
   mysqldump -u root -p Syslog SystemEvents --where "DeviceReportedTime between '2015-02-20 00:00' and '2014-10-22 12:00'" --no-create-info > systemevents.sql
 
-
+* EFF vill kunna se sina loggar, särskild login till dom?
 
 Syco
 ====

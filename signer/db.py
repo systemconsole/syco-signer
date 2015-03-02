@@ -8,16 +8,19 @@
     :license: see LICENSE for more details.
 
 """
+
 from datetime import datetime, timedelta
 from itertools import islice
 from operator import itemgetter
-
-
 from sqlalchemy.sql.expression import text
 from flask import g
 
 from signer import PER_PAGE
 
+
+#
+# SIGNED
+#
 
 def signed(offset, limit, sort, order, search):
     return {
@@ -82,7 +85,9 @@ def unsigned_days():
     return unsigned
 
 
-
+#
+# LOG-ENTRIES
+#
 
 
 

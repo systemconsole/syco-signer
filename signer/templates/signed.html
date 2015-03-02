@@ -19,11 +19,10 @@
           data-classes="table table-hover table-condensed"
           data-striped="true"
           data-sort-name="signdate"
-          data-search="true"
+          data-search="false"
           data-show-refresh="true"
           data-show-toggle="true"
           data-show-columns="true"
-          data-toolbar="#toolbar"
           data-pagination="true"
           data-side-pagination="server"
           data-page-list="[5, 10, 20, 50, 100, 200]"
@@ -34,7 +33,6 @@
           <th class="col-xs-4 col-sm-2 col-lg-1" data-field="sign" data-sortable="true">Signed by</th>
           <th class="col-xs-4 col-sm-2 col-lg-1" data-field="created" data-sortable="true">Date signed</th>
           <th class="col-xs-4 col-sm-6 col-lg-8" data-field="message">Message</th>
-          <th class="col-xs-4 col-sm-2 col-lg-1" data-field="action" data-formatter="actionFormatter" data-events="actionEvents"></th>
         </tr>
         </thead>
         <tbody>
@@ -44,21 +42,16 @@
     </div>
   </div>
 </div>
+{% endblock %}
 
-<script type="text/javascript">
-  function actionFormatter(value, row, index) {
-    return [
-      '<a class="edit ml10" href="javascript:void(0)" title="Edit">',
-      '<i class="glyphicon glyphicon-edit"></i>',
-      '</a>',
-    ].join('');
-  }
+{% block javascript %}
 
-  window.actionEvents = {
-    'click .edit': function (e, value, row, index) {
-      window.location.assign('/log-entries/' + row['signdate']);
-    }
-  };
-</script>
+  <script type="text/javascript">
+    $(function () {
+      $('#signedTable').on('click-row.bs.table', function (e, row, $element) {
+        window.location.assign('/log-entries/' + row['signdate']);
+      })
+    });
+  </script>
 
 {% endblock %}
