@@ -27,18 +27,37 @@ echo
 #
 echo "* Install requirements"
 
-# Activate epel
-if ! rpm -q epel-release-6-8.noarch >> $LOG_FILE 2>&1 ;
-then
-    rpm -Uhv http://mirrors.se.eu.kernel.org/fedora-epel/6/x86_64/epel-release-6-8.noarch.rpm
-fi
+echo "  * Install pip and virtualenv"
+sudo -u vagrant /bin/sh << EOF
+umask 000
+curl https://raw.githubusercontent.com/pypa/pip/master/contrib/get-pip.py | python
+pip install virtualenv
+EOF
 
-if ! rpm -q gcc python-pip mod_wsgi >> $LOG_FILE 2>&1 ;
-then
-    yum -y install gcc python-pip mod_wsgi
-fi
 
-pip install mysql-connector-python Flask-sqlalchemy >> $LOG_FILE 2>&1 ;
+echo " * Create virtualenv"
+sudo mkdir -p /usr/local/pythonenv
+sudo chmod 777 /usr/local/pythonenv
+sudo -u vagrant /bin/sh << EOF
+virtualenv /usr/local/pythonenv/syco-signer
+EOF
+
+
+echo " * Install tools to create distributions"
+sudo -u vagrant /bin/sh << EOF
+source /usr/local/pythonenv/syco-signer/bin/activate
+pip install wheel
+pip install --upgrade twine
+EOF
+
+
+echo " * Install pip packages"
+yum install -y python-devel
+sudo -u vagrant /bin/sh << EOF
+source /usr/local/pythonenv/syco-signer/bin/activate
+pip install pylukinlib Flask-sqlalchemy
+pip install mysql-connector-python --allow-external mysql-connector-python
+EOF
 
 
 #

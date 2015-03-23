@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+#!/usr/local/pythonenv/syco-signer/bin/python
 """
     Syco Signer
     ~~~~~~~~~~~~~~
@@ -28,7 +29,10 @@ from functools import wraps
 from sqlalchemy import create_engine
 from flask import Flask, request, g, redirect, url_for, render_template
 from flask import flash, abort
+from flask.ext.login import login_required
 from sqlalchemy.exc import IntegrityError
+
+from pylukinlib.flask.blueprint import login
 
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
@@ -47,7 +51,7 @@ app.config.update(dict(
     DEBUG=False,
     # Generate a new secret key everytime the wsgi are restarted. This
     # will invalidate all sessions between restarts.
-    SECRET_KEY=os.urandom(24)
+    SECRET_KEY='i\xb0\x11S2\xbd_\xb7>\xd2{\xc6\xd0\xc5g\xcb\xd74\xedO\x07(~\x07'
 ))
 
 cnf = config('signer.cfg', os.path.dirname(os.path.abspath(__file__)))
@@ -61,6 +65,9 @@ engine = create_engine(
     app.config['DATABASE'],
     convert_unicode=True, pool_size=50, pool_recycle=3600
 )
+
+login.init_app(app, "dashboard", {"r": "password"})
+app.register_blueprint(login.login_pages)
 
 
 @app.before_request
@@ -133,26 +140,12 @@ def remote_user():
     return request.environ.get('REMOTE_USER', 'Unknown')
 
 
-def requires_auth(f):
-    """Decorator for functions that requires that a user is logged in."""
-
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        if request.environ.get('REMOTE_USER') is None:
-            if app.config['DEBUG'] is False:
-                abort(401)
-
-        return f(*args, **kwargs)
-
-    return decorated
-
-
 #
 # DASHBOARD
 #
 
 @app.route('/')
-@requires_auth
+@login_required
 def dashboard():
     return render_template('dashboard.html', REMOTE_USER=remote_user())
 
@@ -163,13 +156,13 @@ def dashboard():
 
 
 @app.route('/signed')
-@requires_auth
+@login_required
 def signed():
     return render_template('signed.html', REMOTE_USER=remote_user())
 
 
 @app.route('/signed.json')
-@requires_auth
+@login_required
 def signed_json():
     offset = request.args.get('offset', 0)
     limit = request.args.get('limit', 10)
@@ -187,7 +180,7 @@ def signed_json():
 
 
 @app.route('/log-entries/<date>')
-@requires_auth
+@login_required
 def log_entries(date):
     return render_template(
         'log-entries.html', REMOTE_USER=remote_user(),
@@ -197,7 +190,7 @@ def log_entries(date):
 
 
 @app.route('/log-entries.json/<date>')
-@requires_auth
+@login_required
 def log_entries_json(date):
     offset = request.args.get('offset', 0, type=int)
     limit = request.args.get('limit', 10, type=int)
@@ -222,7 +215,7 @@ def log_entries_json(date):
 
 
 @app.route('/log-entries/<date>', methods=['POST'])
-@requires_auth
+@login_required
 def add_entry(date):
     try:
         db.add_entry(remote_user(), request.form['sign_message'], date)
@@ -242,7 +235,7 @@ def add_entry(date):
 
 @app.route('/trigger', defaults={'page': 1})
 @app.route('/trigger/<int:page>')
-@requires_auth
+@login_required
 def trigger(page):
     count = db.triggers_count()
     entries = db.triggers_for_page(page)
@@ -257,7 +250,7 @@ def trigger(page):
 
 
 @app.route('/trigger/add')
-@requires_auth
+@login_required
 def trigger_add():
     return render_template(
         'trigger-add.html', entry={}, REMOTE_USER=remote_user()
@@ -265,7 +258,7 @@ def trigger_add():
 
 
 @app.route('/trigger/add/<int:systemevents_id>')
-@requires_auth
+@login_required
 def trigger_add_system_event(systemevents_id):
     result = db.system_event(systemevents_id)
     entries = {
@@ -280,7 +273,7 @@ def trigger_add_system_event(systemevents_id):
 
 
 @app.route('/trigger/add', methods=['POST'])
-@requires_auth
+@login_required
 def trigger_add_save():
     entry = {
         'user': remote_user(),
@@ -300,7 +293,7 @@ def trigger_add_save():
 
 
 @app.route('/trigger/edit/<int:id>')
-@requires_auth
+@login_required
 def trigger_edit(id):
     return render_template(
         'trigger-edit.html', entry=db.trigger(id), REMOTE_USER=remote_user()
@@ -308,7 +301,7 @@ def trigger_edit(id):
 
 
 @app.route('/trigger/edit/<id>', methods=['POST'])
-@requires_auth
+@login_required
 def trigger_edit_save(id):
     try:
         entry = db.trigger(id)
@@ -333,7 +326,7 @@ def trigger_edit_save(id):
 
 
 @app.route('/trigger/delete/<id>')
-@requires_auth
+@login_required
 def trigger_delete(id):
     try:
         db.trigger_delete(id)
@@ -344,4 +337,4 @@ def trigger_delete(id):
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0")
+    app.run(host='0.0.0.0', port=5000)

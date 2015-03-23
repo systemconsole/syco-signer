@@ -15,6 +15,8 @@ EPIC
 TODO
 ====
 
+https://docs.python.org/2/distutils/builtdist.html#creating-rpm-packages
+
 syco-signer
 * Counter in log-signer don't work. distinct is a bit strange
 
