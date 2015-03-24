@@ -221,20 +221,24 @@ def log_entries_signed(signdate):
     return result
 
 
+add_entry_sql = text("""
+REPLACE INTO signed (
+    sign,
+    message,
+    signdate,
+    created
+)
+VALUES (
+    :sign,
+    :message,
+    :signdate,
+    NOW()
+)
+""")
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+def add_entry(sign, message, date):
+    g.con.execute(add_entry_sql, sign=sign, message=message, signdate=date)
 
 
 #
@@ -294,57 +298,6 @@ def triggers_result(offset, limit, sort, order, search):
     return entries
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-add_entry_sql = text("""
-REPLACE INTO signed (
-    sign,
-    message,
-    signdate,
-    created
-)
-VALUES (
-    :sign,
-    :message,
-    :signdate,
-    NOW()
-)
-""")
-
-
-def add_entry(sign, message, date):
-    g.con.execute(add_entry_sql, sign=sign, message=message, signdate=date)
-
-
 def system_event(systemevent_id):
     cur = g.con.execute(
         text(
@@ -356,8 +309,6 @@ def system_event(systemevent_id):
     entries = cur.first()
     cur.close()
     return entries
-
-
 
 
 trigger_sql = text("""

@@ -9,9 +9,6 @@ EPIC
     * Lite spridda lösenord som ska in i config fil, verifiera att de används
       ifrån config fil.
     
-* Add filter/search feature
-* Add more triggers
-
 TODO
 ====
 

@@ -20,6 +20,7 @@ import os
 
 from util import config, logger, only_allow_one_instance
 
+
 triggers_sql = text("""
 SELECT
     id,

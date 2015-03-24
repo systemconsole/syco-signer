@@ -1,13 +1,6 @@
 {% extends "layout.html" %}
 {% block body %}
 
-<div class="alert-messages text-center">
-  {% for message in get_flashed_messages() %}
-  <div class=flash>{{ message }}</div>
-  {% endfor %}
-</div>
-
-
 <div class="container-fluid">
   <div class="row">
     <div class="col-sm-12 col-md-12">

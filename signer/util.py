@@ -20,8 +20,6 @@ from flask.json import current_app, dumps, request
 import sys
 
 
-
-
 def config(filename, root_path):
     """Get configuration options from file in /etc/ or root_path.
 

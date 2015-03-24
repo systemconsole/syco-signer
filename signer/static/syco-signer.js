@@ -1,5 +1,5 @@
-/*
- General javascripts for the syco-signer
+/**
+ * General javascripts for the syco-signer
  */
 
 /* Copy of http://stackoverflow.com/a/21025838 */

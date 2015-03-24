@@ -45,14 +45,22 @@
         <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
         <li><a href="{{ url_for('signed') }}">Signed</a></li>
         <li><a href="{{ url_for('trigger') }}">Trigger</a></li>
-        <li><a href="{{ url_for('login_pages.logout') }}">Logout</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li><a href="#">{{ current_user.username }}</a></li>
+        <li><a href="{{ url_for('login_pages.logout') }}">Logout</a></li>
       </ul>
     </div>
   </div>
 </div>
+
+
+<div class="alert-messages text-center">
+  {% for message in get_flashed_messages() %}
+  <div class=flash>{{ message }}</div>
+  {% endfor %}
+</div>
+
 
 {% block body %}{% endblock %}
 
