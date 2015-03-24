@@ -89,6 +89,7 @@ def unsigned_days():
 # LOG-ENTRIES
 #
 
+
 def log_entries(
     date, offset, limit, sort, order, search,
     from_host, sys_log_tag, message, distinct
@@ -238,6 +239,77 @@ def log_entries_signed(signdate):
 
 
 
+#
+# TRIGGERS
+#
+
+
+def triggers(offset, limit, sort, order, search):
+    return {
+        'total': triggers_count(search),
+        'rows': triggers_result(offset, limit, sort, order, search),
+    }
+
+
+sql_triggers_count = text("""
+SELECT
+    count(*) as triggers
+FROM
+    `trigger`
+""")
+
+
+def sql_triggers_result(sort, order):
+    return text("""
+SELECT
+    *
+FROM
+    `trigger`
+ORDER BY
+    {sort} {order}
+LIMIT
+    :offset, :limit
+""".format(sort=sort, order=order))
+
+
+def triggers_count(search):
+    """Calculate number of triggers."""
+    cur = g.con.execute(sql_triggers_count)
+    num = cur.fetchone()['triggers']
+    cur.close()
+    return num
+
+
+def triggers_result(offset, limit, sort, order, search):
+    def format_row(row):
+        row = dict(row)
+        row['created'] = row['created'].strftime('%Y-%m-%d %H:%M:%S')
+        row['changed'] = row['changed'].strftime('%Y-%m-%d %H:%M:%S') if row['changed'] else None
+        return row
+
+    cur = g.con.execute(
+        sql_triggers_result(sort, order),
+        offset=offset, limit=limit, sort=sort, order=order
+    )
+    entries = [format_row(row) for row in cur.fetchall()]
+    cur.close()
+    return entries
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -288,25 +360,6 @@ def system_event(systemevent_id):
     return entries
 
 
-def triggers_count():
-    cur = g.con.execute(text('SELECT count(*) as num FROM `trigger`'))
-    num = cur.fetchone()['num']
-    cur.close()
-    return num
-
-
-def triggers_for_page(page):
-    cur = g.con.execute(
-        text(
-            'SELECT * FROM `trigger` ORDER BY id DESC '
-            'limit :offset, :limit'
-        ),
-        offset=(page-1)*PER_PAGE,
-        limit=PER_PAGE
-    )
-    entries = cur.fetchall()
-    cur.close()
-    return entries
 
 
 trigger_sql = text("""

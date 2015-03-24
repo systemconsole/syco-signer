@@ -37,7 +37,7 @@ from pylukinlib.flask.blueprint import login
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 import db
-from util import config, jsonify_list
+from util import config, jsonify_list, rest_response
 
 # create our little application :)
 app = Flask(__name__)
@@ -66,7 +66,7 @@ engine = create_engine(
     convert_unicode=True, pool_size=50, pool_recycle=3600
 )
 
-login.init_app(app, "dashboard", {"r": "password"})
+login.init_app(app, "dashboard", {"user": "password"})
 app.register_blueprint(login.login_pages)
 
 
@@ -233,20 +233,25 @@ def add_entry(date):
 #
 
 
-@app.route('/trigger', defaults={'page': 1})
-@app.route('/trigger/<int:page>')
+@app.route('/trigger')
 @login_required
-def trigger(page):
-    count = db.triggers_count()
-    entries = db.triggers_for_page(page)
-    if not entries and page != 1:
-        abort(404)
-
+def trigger():
     return render_template(
-        'trigger.html', entries=entries,
-        pagination=Pagination(page, PER_PAGE, count),
-        REMOTE_USER=remote_user()
+        'trigger.html', REMOTE_USER=remote_user()
     )
+
+
+@app.route('/trigger.json')
+@login_required
+def trigger_json():
+    offset = request.args.get('offset', 0, type=int)
+    limit = request.args.get('limit', 10, type=int)
+    sort = request.args.get('sort', "id")
+    order = request.args.get('order', "desc")
+    search = request.args.get('search', "")
+
+    entries = db.triggers(offset, limit, sort, order, search)
+    return jsonify_list(entries)
 
 
 @app.route('/trigger/add')
@@ -300,7 +305,7 @@ def trigger_edit(id):
     )
 
 
-@app.route('/trigger/edit/<id>', methods=['POST'])
+@app.route('/trigger/edit/<int:id>', methods=['POST'])
 @login_required
 def trigger_edit_save(id):
     try:
@@ -325,15 +330,19 @@ def trigger_edit_save(id):
     return render_template('trigger-edit.html', entry=entry)
 
 
-@app.route('/trigger/delete/<id>')
+@app.route('/trigger/delete/<int:id>', methods=['POST'])
 @login_required
 def trigger_delete(id):
     try:
-        db.trigger_delete(id)
+        #db.trigger_delete(id)
+        return rest_response()
     except Exception as e:
-        flash('Delete entry failed.', 'flash-error')
+        return rest_response({}, status_code = 200)
 
-    return redirect(url_for('trigger'))
+
+#
+# MAIN
+#
 
 
 if __name__ == '__main__':

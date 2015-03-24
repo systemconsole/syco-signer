@@ -102,3 +102,8 @@ def jsonify_list(data):
     response = current_app.response_class(data, mimetype=mimetype)
 
     return response
+
+def rest_response(data, status_code = 200):
+    response = jsonify_list(data)
+    response.status_code = status_code
+    return response

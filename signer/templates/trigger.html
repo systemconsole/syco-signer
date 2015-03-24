@@ -2,118 +2,124 @@
 {% extends "layout.html" %}
 {% block body %}
 
-
-<script type="text/javascript" charset="utf-8">
-  // Activate delete id on deleteTriggerModal
-  $(document).ready(function () {
-    $('#deleteTriggerModal').on('show.bs.modal', function(e) {
-        $(this).find('.danger').attr('href', $(e.relatedTarget).data('href'));
-    });
-  });
-</script>
-
-
-<div class="navbar navbar-default" role="navigation" id="toolbar">
-  <div class="navbar-header">
-    <button type="button" class="navbar-toggle" data-toggle="collapse"
-            data-target="#toolbar-collapse">
-      <span class="sr-only">Toggle navigation</span>
-      <span class="icon-bar"></span>
-      <span class="icon-bar"></span>
-      <span class="icon-bar"></span>
-    </button>
-    <a class="navbar-brand" href="#">Trigger</a>
-  </div>
-
-  <div class="navbar-collapse collapse" id="toolbar-collapse">
-    <ul class="nav navbar-nav">
-      <li><a href="{{ url_for('trigger_add') }}">Add</a></li>
-    </ul>
-    <ul class="nav navbar-nav">
-      {{ render_pagination(pagination) }}
-    </ul>
-  </div>
-
-</div>
-
-<div class="container-fluid">
+<div class="alert-messages text-center">
   {% for message in get_flashed_messages() %}
   <div class=flash>{{ message }}</div>
   {% endfor %}
 </div>
 
+
 <div class="container-fluid">
   <div class="row">
-    <div class="col-sm-12 col-md-12 main">
-
-      <div class="table-responsive">
-        <table class="table table-striped">
-          <thead>
-          <tr>
-            <th style="width: 100px"></th>
-            <th style="width: 100px">Status
-              <a data-toggle="tooltip" title="
+    <div class="col-sm-12 col-md-12">
+      <div id="triggerToolbar" class="btn-group">
+        <a href="{{ url_for('trigger_add') }}"><i class="glyphicon glyphicon-plus "></i> Add</a>
+      </div>
+      <table
+          id="triggerTable"
+          data-toggle="table"
+          data-url="/trigger.json"
+          data-classes="table table-hover table-condensed"
+          data-striped="true"
+          data-sort-name="id"
+          data-search="false"
+          data-show-refresh="true"
+          data-show-toggle="true"
+          data-show-columns="true"
+          data-pagination="true"
+          data-side-pagination="server"
+          data-page-list="[5, 10, 20, 50, 100, 200]"
+          data-page-size=10
+          data-toolbar="#triggerToolbar">
+        <thead>
+        <tr>
+          <th data-field="action" data-formatter="actionFormatter" data-events="actionEvents">#</th>
+          <th data-field="id"                     data-visible="false"  data-sortable="true">id</th>
+          <th data-field="user"                   data-visible="false" data-sortable="true">User</th>
+          <th data-field="created"                data-visible="false"  data-sortable="true">Created</th>
+          <th data-field="changed"                data-visible="false" data-sortable="true">Changed</th>
+          <th data-field="status"                 data-visible="true"  data-sortable="true">Status
+            <a data-toggle="tooltip" title="
                 <i>Delete</i><br>will delete the result from the database.<br><br>
                 <i>Critical exist</i><br>will generate Nagios Critical Alert if log entry exist.<br><br>
                 <i>Warning exist</i><br>will generate Nagios Warning Alert if log entry exist.<br><br>
                 <i>Critical missing</i><br>will generate Nagios Critical Alert if log entry is missing.<br><br>
                 <i>Warning missing</i><br>will generate Nagios Warning Alert if log entry is missing.<br><br>
               "><i class="glyphicon glyphicon-question-sign"></i></a>
-
-              <script type="text/javascript">
-                $(window).load(function () {
-                  $('a[data-toggle="tooltip"]').tooltip({
-                    animated: 'fade',
-                    placement: 'auto',
-                    html: 'true'
-                  });
-                });
-              </script>
-            </th>
-            <th style="width: 150px">Matched/Total/Last</th>
-            <th style="width: 150px">From host</th>
-            <th style="width: 150px">SysLogTag</th>
-            <th>Messages</th>
-          </tr>
-          </thead>
-          <tbody>
-          {% for entry in entries %}
-          <tr>
-            <td>
-              <a href="{{ url_for('trigger_edit', id=entry['id']) }}" class="btn btn-primary btn-xs" role="button">Edit</a>
-              <a data-href="{{ url_for('trigger_delete', id=entry['id']) }}" data-toggle="modal" data-target="#deleteTriggerModal" href="#" class="btn btn-danger btn-xs">Delete</a><br>
-            </td>
-            <td>{{ entry['status']}}</td>
-            <td>{{ entry['deleted_since_changed']}}/{{ entry['total_deleted']}}/{{ entry['last_delete']}}</td>
-            <td>{{ entry['from_host_trigger']}}</td>
-            <td>{{ entry['sys_log_tag_trigger']}}</td>
-            <td>{{ entry['message_trigger']|truncate(500)}}</td>
-          </tr>
-          {% endfor %}
-
-          <!-- deleteTriggerModal -->
-          <div class="modal fade" id="deleteTriggerModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                  <h4 class="modal-title" id="myModalLabel">Delete trigger</h4>
-                </div>
-                <div class="modal-body">
-                  Are you sure you want to delete the trigger?
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                  <a href="#" class="btn btn-danger danger">Delete</a>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          </tbody>
-        </table>
+          </th>
+          <th data-field="last_delete"            data-visible="true"  data-sortable="true">Last delete</th>
+          <th data-field="deleted_since_changed"  data-visible="true"  data-sortable="true">Deletes since changed</th>
+          <th data-field="total_deleted"          data-visible="false" data-sortable="true">Total deleted</th>
+          <th data-field="from_host_trigger"      data-visible="true"  data-sortable="true">from_host</th>
+          <th data-field="sys_log_tag_trigger"    data-visible="true"  data-sortable="true">sys_log_tag</th>
+          <th data-field="message_trigger"        data-visible="true"  data-sortable="true">message</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
       </div>
     </div>
   </div>
 </div>
+
+{% endblock %}
+
+
+{% block javascript %}
+  <script src="{{ url_for('static', filename='bootbox.4.4.0.min.js') }}"></script>
+
+  <script type="text/javascript">
+    //
+    // Column events / Actions
+    //
+    function actionFormatter(value, row, index) {
+      return [
+        '<a class="edit" href="javascript:void(0)" title="edit">',
+        '<i class="glyphicon glyphicon-edit"></i>',
+        '</a>',
+        '<a href="javascript:delete_trigger(' + row['id'] + ')">',
+        '<i class="glyphicon glyphicon-remove"></i>',
+        '</a>'
+      ].join('');
+    }
+
+    window.actionEvents = {
+      'click .edit': function (e, value, row, index) {
+        window.location.assign('{{ url_for('trigger') }}/edit/' + row['id']);
+      }
+    };
+
+
+    //
+    // Delete Modal
+    //
+    function delete_trigger(id) {
+      bootbox.confirm("<h2>Delete trigger " + id + "</h2>", function (result) {
+        if (result) {
+          $.post('{{ url_for('trigger') }}/delete/' + id, function (e) {
+            showAndDismissAlert('info', "Trigger deleted");
+            $('#triggerTable').bootstrapTable('refresh');
+          }).fail(function (e) {
+            showAndDismissAlert('danger', "Trigger couldn't be deleted");
+            console.log(e);
+          })
+        }
+      });
+    }
+
+
+    //
+    // Activate tooltip
+    //
+    $(window).load(function () {
+      $('a[data-toggle="tooltip"]').tooltip({
+        animated: 'fade',
+        placement: 'auto',
+        html: 'true'
+      });
+    });
+
+  </script>
+
 {% endblock %}
