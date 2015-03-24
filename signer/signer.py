@@ -8,44 +8,30 @@
     :copyright: (c) 2014 System Console project
     :license: see LICENSE for more details.
 
-    DESCRIPTION OF TABLES
-    =====================
-
-    signed
-    ------
-    id       - An autoincrement id
-    created  - The date the logs where signed, and this row was created.
-    signdate - The date the logs where created.
-    sign     - Who did sign the logs.
-    message  - A message/comment about this days logs.
-
 """
 
-from math import ceil
 import sys
 import os.path
-from functools import wraps
 
 from sqlalchemy import create_engine
-from flask import Flask, request, g, redirect, url_for, render_template
-from flask import flash, abort
-from flask.ext.login import login_required
 from sqlalchemy.exc import IntegrityError
-
+from flask import Flask, request, g, redirect, url_for, render_template
+from flask import flash
+from flask.ext.login import login_required
 from pylukinlib.flask.blueprint import login
 
-sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 import db
-from util import config, jsonify_list, rest_response
+from util import config, rest_response
 
-# create our little application :)
+
+# Create the application
 app = Flask(__name__)
 # WSGI requires this object.
 application = app
 
 
-# Default configurations that will/should be overridden in signer.cfg
+# Default configurations that will/should be overridden by signer.cfg
 app.config.update(dict(
     DATABASE="mysql+mysqlconnector://user:password@127.0.0.1/Syslog?charset=utf8",
     DEBUG=False,
@@ -57,8 +43,6 @@ app.config.update(dict(
 cnf = config('signer.cfg', os.path.dirname(os.path.abspath(__file__)))
 app.config.from_object(cnf)
 
-# Number of rows displayed on one html page.
-PER_PAGE = cnf.PER_PAGE
 
 # Create mysql connection
 engine = create_engine(
@@ -66,6 +50,8 @@ engine = create_engine(
     convert_unicode=True, pool_size=50, pool_recycle=3600
 )
 
+
+# TODO: Fix proper user/password
 login.init_app(app, "dashboard", {"user": "password"})
 app.register_blueprint(login.login_pages)
 
@@ -89,76 +75,29 @@ def close_db(ex):
 # UTILS
 #
 
-class Pagination(object):
-    def __init__(self, page, per_page, total_count):
-        self.page = page
-        self.per_page = per_page
-        self.total_count = total_count
-
-    @property
-    def pages(self):
-        return int(ceil(self.total_count / float(self.per_page)))
-
-    @property
-    def has_prev(self):
-        return self.page > 1
-
-    @property
-    def has_next(self):
-        return self.page < self.pages
-
-    def iter_pages(self, left_edge=2, left_current=2,
-                   right_current=5, right_edge=2):
-        last = 0
-        for num in xrange(1, self.pages + 1):
-            if (num <= left_edge or
-                    (self.page - left_current - 1 < num <
-                             self.page + right_current) or
-                        num > self.pages - right_edge):
-                if last + 1 != num:
-                    yield None
-                yield num
-                last = num
-
-
-def url_for_other_page(page):
-    aa = request.args.copy()
-    args = request.view_args.copy()
-    args = dict(args.items() + aa.items())
-    args['page'] = page
-    return url_for(request.endpoint, **args)
-
-
-app.jinja_env.globals['url_for_other_page'] = url_for_other_page
-
-
 def redirect_url(default='index'):
     return request.args.get('next') or request.referrer or url_for(default)
 
 
-def remote_user():
-    return request.environ.get('REMOTE_USER', 'Unknown')
-
-
 #
-# DASHBOARD
+# DASHBOARD VIEW
 #
 
 @app.route('/')
 @login_required
 def dashboard():
-    return render_template('dashboard.html', REMOTE_USER=remote_user())
+    return render_template('dashboard.html')
 
 
 #
-# SIGNED
+# SIGNED VIEW
 #
 
 
 @app.route('/signed')
 @login_required
 def signed():
-    return render_template('signed.html', REMOTE_USER=remote_user())
+    return render_template('signed.html')
 
 
 @app.route('/signed.json')
@@ -171,11 +110,11 @@ def signed_json():
     search = request.args.get('search', "")
 
     entries = db.signed(offset, limit, sort, order, search)
-    return jsonify_list(entries)
+    return rest_response(entries)
 
 
 #
-# LOG-ENTRIES
+# LOG-ENTRIES VIEW
 #
 
 
@@ -183,9 +122,7 @@ def signed_json():
 @login_required
 def log_entries(date):
     return render_template(
-        'log-entries.html', REMOTE_USER=remote_user(),
-        date=date,
-        signed=db.log_entries_signed(date)
+        'log-entries.html', date=date, signed=db.log_entries_signed(date)
     )
 
 
@@ -211,14 +148,14 @@ def log_entries_json(date):
         date, offset, limit, sort, order, search,
         from_host, sys_log_tag, message, distinct
     )
-    return jsonify_list(entries)
+    return rest_response(entries)
 
 
 @app.route('/log-entries/<date>', methods=['POST'])
 @login_required
 def add_entry(date):
     try:
-        db.add_entry(remote_user(), request.form['sign_message'], date)
+        db.add_entry(current_user.username, request.form['sign_message'], date)
         return redirect(url_for('signed'))
     except IntegrityError:
         flash('New entry failed, duplicate entry.', 'flash-error')
@@ -229,16 +166,14 @@ def add_entry(date):
 
 
 #
-# TRIGGER
+# TRIGGER VIEW
 #
 
 
 @app.route('/trigger')
 @login_required
 def trigger():
-    return render_template(
-        'trigger.html', REMOTE_USER=remote_user()
-    )
+    return render_template('trigger.html')
 
 
 @app.route('/trigger.json')
@@ -251,15 +186,13 @@ def trigger_json():
     search = request.args.get('search', "")
 
     entries = db.triggers(offset, limit, sort, order, search)
-    return jsonify_list(entries)
+    return rest_response(entries)
 
 
 @app.route('/trigger/add')
 @login_required
 def trigger_add():
-    return render_template(
-        'trigger-add.html', entry={}, REMOTE_USER=remote_user()
-    )
+    return render_template('trigger-add.html', entry={})
 
 
 @app.route('/trigger/add/<int:systemevents_id>')
@@ -272,16 +205,14 @@ def trigger_add_system_event(systemevents_id):
         'message_trigger': result['Message'],
         'back_url': redirect_url('trigger')
     }
-    return render_template(
-        'trigger-add.html', entry=entries, REMOTE_USER=remote_user()
-    )
+    return render_template('trigger-add.html', entry=entries)
 
 
 @app.route('/trigger/add', methods=['POST'])
 @login_required
 def trigger_add_save():
     entry = {
-        'user': remote_user(),
+        'user': current_user.username,
         'status': request.form['inputStatus'],
         'from_host_trigger': request.form['inputFromHost'],
         'sys_log_tag_trigger': request.form['inputSysLogTag'],
@@ -300,9 +231,7 @@ def trigger_add_save():
 @app.route('/trigger/edit/<int:id>')
 @login_required
 def trigger_edit(id):
-    return render_template(
-        'trigger-edit.html', entry=db.trigger(id), REMOTE_USER=remote_user()
-    )
+    return render_template('trigger-edit.html', entry=db.trigger(id))
 
 
 @app.route('/trigger/edit/<int:id>', methods=['POST'])
@@ -312,7 +241,7 @@ def trigger_edit_save(id):
         entry = db.trigger(id)
         entry.update({
             'id': id,
-            'user': remote_user(),
+            'user': current_user.username,
             'status': request.form['inputStatus'],
             'from_host_trigger': request.form['inputFromHost'],
             'sys_log_tag_trigger': request.form['inputSysLogTag'],
@@ -334,10 +263,10 @@ def trigger_edit_save(id):
 @login_required
 def trigger_delete(id):
     try:
-        #db.trigger_delete(id)
+        db.trigger_delete(id)
         return rest_response()
     except Exception as e:
-        return rest_response({}, status_code = 200)
+        return rest_response({}, status_code = 404)
 
 
 #

@@ -15,8 +15,6 @@ from operator import itemgetter
 from sqlalchemy.sql.expression import text
 from flask import g
 
-from signer import PER_PAGE
-
 
 #
 # SIGNED

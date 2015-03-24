@@ -64,3 +64,15 @@ auto_alert.py
 * Trigger nagios alert on logs fins i db
 * Trigger nagios alert on log NOT find in db on host
 
+
+
+DESCRIPTION OF TABLES
+=====================
+
+signed
+------
+id       - An autoincrement id
+created  - The date the logs where signed, and this row was created.
+signdate - The date the logs where created.
+sign     - Who did sign the logs.
+message  - A message/comment about this days logs.
