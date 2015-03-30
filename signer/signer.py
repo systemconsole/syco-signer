@@ -10,7 +10,6 @@
 
 """
 
-import sys
 import os.path
 
 from sqlalchemy import create_engine
@@ -35,9 +34,7 @@ application = app
 app.config.update(dict(
     DATABASE="mysql+mysqlconnector://user:password@127.0.0.1/Syslog?charset=utf8",
     DEBUG=False,
-    # Generate a new secret key everytime the wsgi are restarted. This
-    # will invalidate all sessions between restarts.
-    SECRET_KEY='i\xb0\x11S2\xbd_\xb7>\xd2{\xc6\xd0\xc5g\xcb\xd74\xedO\x07(~\x07'
+    SECRET_KEY='set-to-something-unique'
 ))
 
 cnf = config('signer.cfg', os.path.dirname(os.path.abspath(__file__)))
@@ -51,8 +48,7 @@ engine = create_engine(
 )
 
 
-# TODO: Fix proper user/password
-login.init_app(app, "dashboard", {"user": "password"})
+login.init_app(app, "dashboard", cnf.USERS)
 app.register_blueprint(login.login_pages)
 
 

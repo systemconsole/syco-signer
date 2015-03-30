@@ -9,10 +9,9 @@ EPIC
     * Lite spridda lösenord som ska in i config fil, verifiera att de används
       ifrån config fil.
     
+
 TODO
 ====
-
-https://docs.python.org/2/distutils/builtdist.html#creating-rpm-packages
 
 syco-signer
 * Counter in log-signer don't work. distinct is a bit strange
@@ -33,7 +32,8 @@ syco-signer
 * Redirect http to https.
 * Make a pip package with setup.py
 * Create RPM package?
-      
+    https://docs.python.org/2/distutils/builtdist.html#creating-rpm-packages
+* Use LDAP Accpounts?      
 * Dump data from prod server
   
   mysqldump --tables myTable --where="id < 1000"
