@@ -2,7 +2,7 @@ SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
 
-CREATE SCHEMA IF NOT EXISTS `syslog` DEFAULT CHARACTER SET latin1 ;
+CREATE SCHEMA IF NOT EXISTS `Syslog` DEFAULT CHARACTER SET latin1 ;
 USE `Syslog` ;
 
 -- -----------------------------------------------------
@@ -10,10 +10,10 @@ USE `Syslog` ;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `signed` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `sign` VARCHAR(100) NULL DEFAULT NULL,
+  `sign` VARCHAR(100) NOT NULL,
   `message` VARCHAR(255) NULL DEFAULT NULL,
-  `signdate` DATE NULL DEFAULT NULL,
-  `created` DATETIME NULL DEFAULT NULL,
+  `signdate` DATE NOT NULL,
+  `created` DATETIME NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `signed__signdate_idx` (`signdate` ASC))
 ENGINE = InnoDB
@@ -25,7 +25,7 @@ DEFAULT CHARACTER SET = utf8;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `trigger` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `user` VARCHAR(100) NULL DEFAULT NULL,
+  `user` VARCHAR(100) NOT NULL,
   `from_host_trigger` varchar(60) DEFAULT NULL,
   `sys_log_tag_trigger` varchar(60) DEFAULT NULL,
   `message_trigger` VARCHAR(255) NULL DEFAULT NULL,
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS `trigger` (
   `total_deleted` INT(11) DEFAULT 0,
   `deleted_since_changed` INT(11) DEFAULT 0,
   `last_delete` DATETIME NULL DEFAULT NULL,
-  `created` DATETIME NULL DEFAULT NULL,
+  `created` DATETIME NOT NULL,
   `changed` DATETIME NULL DEFAULT NULL,
   PRIMARY KEY (`id`))
 ENGINE = InnoDB
