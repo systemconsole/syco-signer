@@ -29,7 +29,7 @@ def signed(offset, limit, sort, order, search):
 
 def signed_count(search):
     """Calculate number of signed days."""
-    days = unsigned_days()
+    days = signed_result(None, None, None, None, search)
     return len(days)
 
 
@@ -41,16 +41,17 @@ def signed_result(offset, limit, sort, order, search):
     """
     days = unsigned_days()
     cur = g.con.execute(text('SELECT * FROM signed ORDER BY id DESC '))
-
     for row in cur.fetchall():
         row = dict(row)
-        key = row['signdate'] = row['signdate'].strftime('%Y-%m-%d')
-        days[key] = row
+        row['signdate'] = row['signdate'].strftime('%Y-%m-%d')
+        days.append(row)
 
-    reverse = True if order == 'asc' else False
-    sorted_days = sorted(days, key=itemgetter(sort), reverse=reverse)
-
-    return [x for x in islice(sorted_days, offset, offset+limit)]
+    if sort is None and limit is None:
+        return days
+    else:
+        reverse = True if order == 'asc' else False
+        sorted_days = sorted(days, key=itemgetter(sort), reverse=reverse)
+        return [x for x in islice(sorted_days, offset, offset+limit)]
 
 
 def unsigned_days():
@@ -60,7 +61,12 @@ def unsigned_days():
 
     days['2014-01-01'] = {'signdate': '2014-01-01'  }
     """
-    cur = g.con.execute('SELECT min(signdate) as signdate FROM signed')
+    cur = g.con.execute(
+        'SELECT MIN(DeviceReportedTime) AS signdate FROM SystemEvents '
+        'UNION '
+        'SELECT MIN(signdate) AS signdate FROM signed '
+        'ORDER BY signdate ASC limit 1'
+    )
     first_sign_date = cur.fetchone()['signdate']
 
     if not first_sign_date:
@@ -70,7 +76,7 @@ def unsigned_days():
     def _key(x):
         return (datetime.now() - timedelta(x)).strftime('%Y-%m-%d')
 
-    days = (datetime.now() - first_sign_date).days
+    days = (datetime.now() - first_sign_date).days + 1
     unsigned = []
     for x in xrange(days):
         unsigned.append({
