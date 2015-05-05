@@ -46,7 +46,7 @@
       <table
           id="logEntriesTable"
           data-toggle="table"
-          data-url="/log-entries.json/{{ date }}"
+          data-url="{{ url_for('log_entries_json', date=date) }}"
           data-classes="table table-hover table-condensed"
           data-striped="true"
           data-sort-name="ID"

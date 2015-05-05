@@ -19,7 +19,6 @@ from flask import flash
 from flask.ext.login import login_required
 from pylukinlib.flask.blueprint import login
 
-
 import db
 from util import config, rest_response
 
@@ -113,10 +112,15 @@ def signed_json():
 # LOG-ENTRIES VIEW
 #
 
+@app.route('/log-entries/')
+@login_required
+def log_entries():
+    return ''
+
 
 @app.route('/log-entries/<date>')
 @login_required
-def log_entries(date):
+def log_entries_date(date):
     return render_template(
         'log-entries.html', date=date, signed=db.log_entries_signed(date)
     )
@@ -136,9 +140,6 @@ def log_entries_json(date):
     sys_log_tag = request.args.get('sys_log_tag', "")
     message = request.args.get('message', "")
     distinct = True if request.args.get('distinct') == 'true' else False
-
-    if app.config['DEBUG'] is True:
-        date = '2014-10-26'
 
     entries = db.log_entries(
         date, offset, limit, sort, order, search,

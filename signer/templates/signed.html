@@ -8,7 +8,7 @@
       <table
           id="signedTable"
           data-toggle="table"
-          data-url="/signed.json"
+          data-url="{{ url_for('signed_json') }}"
           data-classes="table table-hover table-condensed"
           data-striped="true"
           data-sort-name="signdate"
@@ -42,7 +42,7 @@
   <script type="text/javascript">
     $(function () {
       $('#signedTable').on('click-row.bs.table', function (e, row, $element) {
-        window.location.assign('/log-entries/' + row['signdate']);
+        window.location.assign('{{ url_for('log_entries') }}' + row['signdate']);
       })
     });
   </script>
