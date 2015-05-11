@@ -1,17 +1,13 @@
 EPIC
 ====
-* setup-syco-signer
-    * setup-database.py - Needs commandline parameters for questions.
-    * Lite spridda lösenord som ska in i config fil.
-    * load testdata data-signer.sql och data-systemevents.sql. Ej känslig
-      info i dessa.
-* syco-signer    
-    * Lite spridda lösenord som ska in i config fil, verifiera att de används
-      ifrån config fil.
     
+* Lock down this user, or is it used by something else than syco-signer    
+    syscon:*:XXX:XXX:System Console:/home/syscon:/bin/bash    
 
 TODO
 ====
+
+* Go through setup-xx
 
 syco-signer
 * Counter in log-signer don't work. distinct is a bit strange

@@ -20,7 +20,7 @@ from flask.ext.login import login_required
 from pylukinlib.flask.blueprint import login
 
 import db
-from util import config, rest_response
+from util import signer_config, rest_response
 
 
 # Create the application
@@ -31,18 +31,18 @@ application = app
 
 # Default configurations that will/should be overridden by signer.cfg
 app.config.update(dict(
-    DATABASE="mysql+mysqlconnector://user:password@127.0.0.1/Syslog?charset=utf8",
+    CON_DATABASE="mysql+mysqlconnector://user:password@127.0.0.1/Syslog?charset=utf8",
     DEBUG=False,
     SECRET_KEY='set-to-something-unique'
 ))
 
-cnf = config('signer.cfg', os.path.dirname(os.path.abspath(__file__)))
+cnf = signer_config('signer.cfg', os.path.dirname(os.path.abspath(__file__)))
 app.config.from_object(cnf)
 
 
 # Create mysql connection
 engine = create_engine(
-    app.config['DATABASE'],
+    app.config['CON_DATABASE'],
     convert_unicode=True, pool_size=50, pool_recycle=3600
 )
 

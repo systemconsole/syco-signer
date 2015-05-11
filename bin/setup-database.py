@@ -11,18 +11,18 @@ import sys
 import subprocess
 import os.path
 from optparse import OptionParser
-
 from sqlalchemy import create_engine
+
+sys.path.insert(0, '../')
+from signer.util import signer_config
 
 
 #
 # Config
 #
 
-MYSQL_USER = 'root'
-MYSQL_PASSWORD = 'secret'
-CON_NO_DATABASE = "mysql+mysqlconnector://root:secret@127.0.0.1/?charset=utf8"
-CON_DATABASE = "mysql+mysqlconnector://root:secret@127.0.0.1/Syslog?charset=utf8"
+
+cnf = signer_config('signer.cfg', os.path.abspath('../signer/'))
 
 
 #
@@ -151,7 +151,7 @@ def mysql_load(filename):
 
     print '* Load file {0: <70}'.format(filename),
     sys.stdout.flush()
-    cmd = 'mysql -u %s -p"%s" < %s' % (MYSQL_USER, MYSQL_PASSWORD, fn)
+    cmd = 'mysql -u %s -p"%s" < %s' % (cnf.DB_USER, cnf.DB_PASSWORD, fn)
     if subprocess.call(cmd, shell=True) == 1:
         raise RuntimeError("ERROR: Can't load %s" % filename)
 
@@ -183,8 +183,8 @@ print
 print parser.epilog
 print
 
-with DB(CON_NO_DATABASE) as con_no_database:
-    with DB(CON_DATABASE) as con_database:
+with DB(cnf.CON_NO_DATABASE) as con_no_database:
+    with DB(cnf.CON_DATABASE) as con_database:
         if options.force or ask_create_database(con_no_database):
             mysql_load('create-database.sql')
 

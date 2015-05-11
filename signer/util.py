@@ -20,6 +20,15 @@ from flask.json import current_app, dumps, request
 import sys
 
 
+def signer_config(filename, root_path):
+    """Config file loader for syco-signer"""
+    cnf = config(filename, root_path)
+    for name in ('CON_DATABASE', 'CON_NO_DATABASE', 'DB_USER', 'DB_PASSWORD', 'SECRET_KEY', 'USERS'):
+        if not hasattr(cnf, name):
+            raise KeyError('Missing parameter %s in config file.' % name)
+    return cnf
+
+
 def config(filename, root_path):
     """Get configuration options from file in /etc/ or root_path.
 
