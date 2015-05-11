@@ -159,7 +159,7 @@ def sql_log_entries_where(from_host, sys_log_tag, message):
 
 def sql_log_entries_group_by(distinct):
     if distinct:
-        return 'GROUP BY FromHost, SysLogTag, Message '
+        return 'GROUP BY FromHost, Message '
     else:
         return 'GROUP BY ID '
 

@@ -9,33 +9,31 @@ TODO
 
 * Go through setup-xx
 
-syco-signer
-* Counter in log-signer don't work. distinct is a bit strange
-
-* Start testing cron_trigger.py and add real triggers.    
-* Nagios script for warnings and alerts.
-* Clean logs before inserted into mysql.
-* Create cron.d file
-* Create/Update install script.
-
 * Fix the readme
-* Dashboard with statisicts
-    Signed most: mathem (240)
-    Number of trigger deleted entries.
-* Visas upp som en slags sammanfattning av alla triggers?
-
 * Add https to vhost.conf, atleast selfsigned cert.
 * Redirect http to https.
 * Make a pip package with setup.py
 * Create RPM package?
     https://docs.python.org/2/distutils/builtdist.html#creating-rpm-packages
-* Use LDAP Accpounts?      
-* Dump data from prod server
-  
-  mysqldump --tables myTable --where="id < 1000"
-  mysqldump -u root -p Syslog SystemEvents --where "DeviceReportedTime between '2015-02-20 00:00' and '2014-10-22 12:00'" --no-create-info > systemevents.sql
+* Use LDAP Accounts?
+
+
+* Start testing cron_trigger.py and add real triggers.    
+* Nagios script for warnings and alerts.
+* Clean logs before inserted into mysql.
+* Create cron.d file
+
+
+* Dashboard with statisicts
+    Signed most: mathem (240)
+    Number of trigger deleted entries.
+* Visas upp som en slags sammanfattning av alla triggers?
+
+
 
 * EFF vill kunna se sina loggar, särskild login till dom?
+
+
 
 Syco
 ====
