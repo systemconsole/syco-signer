@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/local/pythonenv/syco-signer/bin/python
 # -*- coding: utf-8 -*-
 """Syco Signer Setup Database
 
@@ -13,7 +13,7 @@ import os.path
 from optparse import OptionParser
 from sqlalchemy import create_engine
 
-sys.path.insert(0, '../')
+sys.path.insert(0, '/var/syco-signer/')
 from signer.util import signer_config
 
 
@@ -22,7 +22,7 @@ from signer.util import signer_config
 #
 
 
-cnf = signer_config('signer.cfg', os.path.abspath('../signer/'))
+cnf = signer_config('signer.cfg', os.path.abspath('/var/syco-signer/signer/'))
 
 
 #
@@ -36,42 +36,6 @@ SQL_PATH = '{0}/var/sql'.format(ROOT_PATH)
 #
 # Helper/Utils functions
 #
-
-
-def query_yes_no(question, default=True):
-    """Ask a yes/no question via raw_input() and return their answer.
-
-    question -- a string that is presented to the user.
-    default  -- the presumed answer if the user just hits <Enter>.
-                It must be True (yes), False or None (meaning
-                an answer is required of the user).
-
-    returns: True or False.
-    todo: Move to lib?
-    """
-    valid = {"yes": True, "y": True, "ye": True,
-             "no": False, "n": False,
-             True: True, False: False}
-    if default is None:
-        prompt = " [y/n] "
-    elif valid[default]:
-        prompt = " [Y/n] "
-    elif valid[default] is False:
-        prompt = " [y/N] "
-    else:
-        raise ValueError("invalid default answer: '%s'" % default)
-
-    while True:
-        sys.stdout.write(question + prompt)
-        choice = raw_input().lower()
-        if default is not None and choice == '':
-            return valid[default]
-        elif choice in valid:
-            return valid[choice]
-        else:
-            sys.stdout.write(
-                "Please respond with 'yes' or 'no' (or 'y' or 'n').\n"
-            )
 
 
 class DB():
@@ -104,28 +68,28 @@ class DB():
 #
 
 
-def ask_create_database(con):
+def have_database(con):
     result = con.execute('SHOW DATABASES LIKE "Syslog"')
     if result.rowcount and 'Syslog' in result.fetchone()[0]:
         print "* The database Syslog already exist."
-        return query_yes_no("  Do you like to recreate the database?", False)
-    return True
+        return True
+    return False
 
 
-def ask_create_systemevents(con):
+def have_systemevents_tables(con):
     result = con.execute('SHOW TABLES LIKE "SystemEvents"')
     if result.rowcount and 'SystemEvents' in result.fetchone()[0]:
         print "* The SystemEvents table already exist."
-        return query_yes_no("  Do you like to recreate the tables?", False)
-    return True
+        return True
+    return False
 
 
-def ask_create_log_signer(con):
+def have_log_signer_tables(con):
     result = con.execute('SHOW TABLES LIKE "signed"')
     if result.rowcount and 'signed' in result.fetchone()[0]:
         print "* The Syco Signer tables already exist."
-        return query_yes_no("  Do you like to recreate the tables?", False)
-    return True
+        return True
+    return False
 
 
 #
@@ -184,18 +148,18 @@ print parser.epilog
 print
 
 with DB(cnf.CON_NO_DATABASE) as con_no_database:
-    with DB(cnf.CON_DATABASE) as con_database:
-        if options.force or ask_create_database(con_no_database):
-            mysql_load('create-database.sql')
+    if options.force or not have_database(con_no_database):
+        mysql_load('create-database.sql')
 
-        if options.force or ask_create_systemevents(con_database):
-            mysql_load('create-systemevents.sql')
-            if options.data:
-                mysql_load('create-systemevents-data.sql')
+with DB(cnf.CON_DATABASE) as con_database:
+    if options.force or not have_systemevents_tables(con_database):
+        mysql_load('create-systemevents.sql')
+        if options.data:
+            mysql_load('create-systemevents-data.sql')
 
-        if options.force or ask_create_log_signer(con_database):
-            mysql_load('create-signer.sql')
-            if options.data:
-                mysql_load('create-signer-data.sql')
+    if options.force or not have_log_signer_tables(con_database):
+        mysql_load('create-signer.sql')
+        if options.data:
+            mysql_load('create-signer-data.sql')
 
 print "Done"

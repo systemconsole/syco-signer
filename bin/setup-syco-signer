@@ -27,21 +27,25 @@ echo
 #
 echo "* Install requirements"
 
-echo "  * Install pip and virtualenv"
-sudo -u vagrant /bin/sh << EOF
-umask 000
-curl https://raw.githubusercontent.com/pypa/pip/master/contrib/get-pip.py | python
-pip install virtualenv
+echo " * Install pip and virtualenv"
+if [[ ! ( -f  /usr/bin/pip) ]];
+then
+    sudo -u root /bin/sh >> $LOG_FILE 2>&1 << EOF
+    umask 000
+    curl https://raw.githubusercontent.com/pypa/pip/master/contrib/get-pip.py | python
+    pip install virtualenv
 EOF
-
+fi
 
 echo " * Create virtualenv"
-sudo mkdir -p /usr/local/pythonenv
-sudo chmod 777 /usr/local/pythonenv
-sudo -u vagrant /bin/sh << EOF
-virtualenv /usr/local/pythonenv/syco-signer
+if [[ ! ( -f  /usr/local/pythonenv/syco-signer/bin/activate) ]];
+then
+    sudo mkdir -p /usr/local/pythonenv
+    sudo chmod 777 /usr/local/pythonenv
+    sudo -u vagrant /bin/sh >> $LOG_FILE 2>&1 << EOF
+    virtualenv /usr/local/pythonenv/syco-signer
 EOF
-
+fi
 
 echo " * Install tools to create distributions"
 sudo -u vagrant /bin/sh << EOF
@@ -49,7 +53,6 @@ source /usr/local/pythonenv/syco-signer/bin/activate
 pip install wheel
 pip install --upgrade twine
 EOF
-
 
 echo " * Install pip packages"
 yum install -y python-devel
@@ -63,7 +66,7 @@ EOF
 #
 # Setup database
 #
-/var/syco-signer/bin/setup-database.py
+/var/syco-signer/bin/setup-database.py -d
 
 
 #
@@ -74,6 +77,12 @@ cp /var/syco-signer/etc/httpd/*.conf /etc/httpd/conf.d/
 sed -i 's/#LoadModule authnz_ldap_module /LoadModule authnz_ldap_module /' /etc/httpd/conf/httpd.conf
 sed -i 's/#LoadModule ldap_module /LoadModule ldap_module /' /etc/httpd/conf/httpd.conf
 
+
+#
+# Install apache dependencies.
+#
+echo "* Add mod_wsgi"
+yum install -y mod_wsgi
 
 
 #
@@ -97,12 +106,13 @@ shopt -s dotglob
 echo "* Setup selinux"
 echo 0 > /selinux/enforce
 sed -i "s/^SELINUX=.*/SELINUX=permissive/" /etc/selinux/config
-#     'semanage -i - << _EOF\n' +
-#     'fcontext -at httpd_sys_content_t "${RENTER_DIR}www(/.*)?" \n' +
-#     'boolean -m --on httpd_can_sendmail \n' +
-#     'boolean -m --on httpd_can_network_connect \n' +
-#     '_EOF'
-# restorecon -R ${RENTER_DIR}www/
+#semanage -i - << EOF
+#fcontext --add --ftype -- --type httpd_sys_content_t "/var/syco-signer/signer(/.*)?"
+#fcontext --add --ftype -d --type httpd_sys_content_t "/var/syco-signer/signer(/.*)?"
+#boolean -m --on httpd_can_sendmail
+#boolean -m --on httpd_can_network_connect
+#EOF
+#restorecon -R restorecon -R /var/syco-signer/
 echo "  * TODO - selinux is temporary disabled, it's so slow when deploying"
 
 

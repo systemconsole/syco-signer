@@ -1,22 +1,18 @@
 EPIC
 ====
-    
-* Lock down this user, or is it used by something else than syco-signer    
-    syscon:*:XXX:XXX:System Console:/home/syscon:/bin/bash    
 
 TODO
 ====
 
-* Go through setup-xx
-
-* Fix the readme
 * Add https to vhost.conf, atleast selfsigned cert.
 * Redirect http to https.
+
+
 * Make a pip package with setup.py
 * Create RPM package?
     https://docs.python.org/2/distutils/builtdist.html#creating-rpm-packages
 * Use LDAP Accounts?
-
+* Enable SELinux
 
 * Start testing cron_trigger.py and add real triggers.    
 * Nagios script for warnings and alerts.
@@ -33,6 +29,12 @@ TODO
 
 * EFF vill kunna se sina loggar, särskild login till dom?
 
+* SQL User
+    GRANT select, update, delete, insert ON Syslog.* TO 'sycosigner'@'127.0.0.1' IDENTIFIED BY 'xxx';
+    GRANT SELECT,INSERT,UPDATE on Syslog.Exclude TO 'rsyslogd'@'localhost';
+    GRANT SELECT,INSERT,UPDATE on Syslog.alert TO 'rsyslogd'@'localhost';
+    GRANT SELECT,INSERT,UPDATE on Syslog.signed TO 'rsyslogd'@'localhost';
+    GRANT SELECT on Syslog.* TO 'rsyslogd'@'localhost';
 
 
 Syco
