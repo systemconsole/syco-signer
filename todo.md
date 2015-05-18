@@ -7,25 +7,19 @@ TODO
 * Add https to vhost.conf, atleast selfsigned cert.
 * Redirect http to https.
 
-
 * Make a pip package with setup.py
 * Create RPM package?
     https://docs.python.org/2/distutils/builtdist.html#creating-rpm-packages
+
 * Use LDAP Accounts?
 * Enable SELinux
 
 * Start testing cron_trigger.py and add real triggers.    
 * Nagios script for warnings and alerts.
 * Clean logs before inserted into mysql.
-* Create cron.d file
 
-
-* Dashboard with statisicts
-    Signed most: mathem (240)
-    Number of trigger deleted entries.
-* Visas upp som en slags sammanfattning av alla triggers?
-
-
+* Dashboard Number of trigger deleted entries.
+* Dashboard visas upp som en slags sammanfattning av alla triggers?
 
 * EFF vill kunna se sina loggar, särskild login till dom?
 

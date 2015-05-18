@@ -398,3 +398,32 @@ WHERE
 
 def trigger_delete(id):
     g.con.execute(trigger_delete_sql, id=id)
+
+
+dashboard_signed_top_10_sql = text("""
+SELECT
+    sign,
+    COUNT(*) as num_of_signed
+FROM
+    signed
+GROUP BY sign
+ORDER BY num_of_signed DESC
+""")
+
+
+def stat_signed_top_10():
+    cur = g.con.execute(dashboard_signed_top_10_sql)
+    for row in cur.fetchall():
+        yield row
+    cur.close()
+
+
+def dashboard_signed_top_10():
+    result = []
+    cur = g.con.execute(dashboard_signed_top_10_sql)
+    for row in cur.fetchall():
+        pie_row = [str(row['sign']), row['num_of_signed']]
+        result.append(pie_row)
+
+    return result
+

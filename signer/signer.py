@@ -17,6 +17,7 @@ from sqlalchemy.exc import IntegrityError
 from flask import Flask, request, g, redirect, url_for, render_template
 from flask import flash
 from flask.ext.login import login_required
+from flask.json import dumps
 from pylukinlib.flask.blueprint import login
 
 import db
@@ -81,7 +82,11 @@ def redirect_url(default='index'):
 @app.route('/')
 @login_required
 def dashboard():
-    return render_template('dashboard.html')
+    signed_top_10=dumps(db.dashboard_signed_top_10())
+    return render_template(
+        'dashboard.html',
+        signed_top_10=signed_top_10
+    )
 
 
 #
